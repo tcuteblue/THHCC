@@ -107,8 +107,8 @@
         .action-row { display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 15px; gap: 8px; }
 
         /* 16 家銀行 CI 顏色 */
-        .bank-中國信託 { background: linear-gradient(135deg, #00B4B5, #005051); }
-        .bank-國泰世華 { background: linear-gradient(135deg, #00B859, #8B9A00); }
+        .bank-中信 { background: linear-gradient(135deg, #00B4B5, #005051); }
+        .bank-國泰 { background: linear-gradient(135deg, #00B859, #8B9A00); }
         .bank-台新 { background: linear-gradient(135deg, #FF4757, #C0392B); }
         .bank-永豐 { background: linear-gradient(135deg, #B90025, #4A4A4A); }
         .bank-遠東 { background: linear-gradient(135deg, #FF3F4A, #D99600); }
@@ -212,7 +212,7 @@
         <div class="flex-row" style="margin-bottom:0;">
             <button class="btn-primary" style="flex: 2;" onclick="openModal()">➕ 新增卡片</button>
             
-            <!-- 動態安裝按鈕 (預設隱藏，待 PWA 判定可安裝時顯示) -->
+            <!-- 動態安裝按鈕 -->
             <button id="install-btn" class="btn-install" style="flex: 1; display: none;" onclick="installPWA()">📱 安裝</button>
             
             <button class="btn-outline" style="flex: 1; border-width: 1px;" onclick="openSettings()">⚙️ 設定</button>
@@ -434,7 +434,8 @@
     </div>
 
 <script>
-    const BANKS = ["中國信託", "國泰世華", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山", "彰化", "元大", "新光", "凱基", "第一", "星展"];
+    // 銀行列表簡化
+    const BANKS = ["中信", "國泰", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山", "彰化", "元大", "新光", "凱基", "第一", "星展"];
     let cards = JSON.parse(localStorage.getItem('creditCards')) || [];
     let isListView = true;
     let activeInputId = null;
@@ -443,12 +444,11 @@
     // 自訂到期日選擇器變數
     let tempSelectedMonth = '';
     let tempSelectedYear = '';
-    let currentYearPageStart = 0; // 用於記錄年份網格的起始年
+    let currentYearPageStart = 0; 
     
     // PWA 安裝變數
     let deferredPrompt = null;
 
-    // 註冊虛擬 Service Worker 以滿足 PWA 安裝條件
     if ('serviceWorker' in navigator) {
         const swCode = `
             self.addEventListener('install', (e) => { self.skipWaiting(); });
@@ -460,30 +460,21 @@
         navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
     }
 
-    // 監聽 PWA 可安裝事件
     window.addEventListener('beforeinstallprompt', (e) => {
-        // 防止瀏覽器預設的迷你安裝列跳出
         e.preventDefault();
-        // 儲存事件，待使用者點擊按鈕時觸發
         deferredPrompt = e;
-        // 顯示「安裝 App」按鈕
         document.getElementById('install-btn').style.display = 'inline-block';
     });
 
-    // 點擊安裝按鈕觸發
     async function installPWA() {
         if (deferredPrompt) {
             deferredPrompt.prompt();
-            const { outcome } = await deferredPrompt.userChoice;
-            if (outcome === 'accepted') {
-                console.log('User accepted the install prompt');
-            }
+            await deferredPrompt.userChoice;
             deferredPrompt = null;
             document.getElementById('install-btn').style.display = 'none';
         }
     }
 
-    // 安裝成功後隱藏按鈕
     window.addEventListener('appinstalled', () => {
         document.getElementById('install-btn').style.display = 'none';
     });
@@ -499,14 +490,14 @@
         
         let migrated = false;
         cards.forEach(card => {
-            if (!card.expenses) card.expenses = [];
-            if (card.currentSpend && card.expenses.length === 0) {
-                card.expenses.push({
-                    id: generateId(),
-                    timestamp: new Date().getTime(),
-                    amount: card.currentSpend,
-                    note: '期初結轉'
-                });
+            // 舊資料銀行名稱轉移
+            if (card.bank === '中國信託') { card.bank = '中信'; migrated = true; }
+            if (card.bank === '國泰世華') { card.bank = '國泰'; migrated = true; }
+            
+            // 舊資料記帳結構轉移
+            if (!card.expenses) { card.expenses = []; migrated = true; }
+            if (card.currentSpend !== undefined && card.expenses.length === 0) {
+                card.expenses.push({ id: generateId(), timestamp: new Date().getTime(), amount: card.currentSpend, note: '期初結轉' });
                 migrated = true;
             }
             delete card.currentSpend; 
@@ -517,20 +508,19 @@
         renderCards();
     };
 
-    // 工具函式
+    // 工具函式優化 (抽離補零共用邏輯)
+    const padNum = (n) => n.toString().padStart(2, '0');
     const formatMoney = (num) => Number(num).toLocaleString('en-US');
     const formatCC = (num) => num ? num.replace(/(.{4})/g, '$1-').replace(/-$/, '') : '';
     const formatExpiryDisplay = (num) => num && num.length === 4 ? `${num.substring(0,2)}/${num.substring(2,4)}` : num;
     const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
     const getTimestampStr = () => {
         const d = new Date();
-        const pad = (n) => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}${pad(d.getMonth()+1)}${pad(d.getDate())}_${pad(d.getHours())}${pad(d.getMinutes())}`;
+        return `${d.getFullYear()}${padNum(d.getMonth()+1)}${padNum(d.getDate())}_${padNum(d.getHours())}${padNum(d.getMinutes())}`;
     };
     const formatDate = (ts) => {
         const d = new Date(ts);
-        const pad = (n) => n.toString().padStart(2, '0');
-        return `${d.getFullYear()}/${pad(d.getMonth()+1)}/${pad(d.getDate())} ${pad(d.getHours())}:${pad(d.getMinutes())}`;
+        return `${d.getFullYear()}/${padNum(d.getMonth()+1)}/${padNum(d.getDate())} ${padNum(d.getHours())}:${padNum(d.getMinutes())}`;
     };
 
     const detectHolder = (name) => {
@@ -542,66 +532,61 @@
     function linkify(text) {
         if (!text) return '';
         const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-        return text.replace(urlRegex, function(url) {
-            return '<a href="' + url + '" target="_blank" style="color: #ffdd59; text-decoration: underline; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">' + url + '</a>';
-        });
+        return text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color: #ffdd59; text-decoration: underline; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${url}</a>`);
     }
+
+    // 取得指定卡片與其索引 (優化重複搜尋)
+    function getCardData(id) {
+        const index = cards.findIndex(c => c.id === id);
+        return index > -1 ? { card: cards[index], index } : null;
+    }
+
+    // 共用複製邏輯 (整合原本的 copyText 與 copyAll)
+    function performCopy(text, event) {
+        if(event) event.stopPropagation();
+        const tempTextArea = document.createElement("textarea");
+        tempTextArea.value = text;
+        document.body.appendChild(tempTextArea);
+        tempTextArea.select();
+        try { document.execCommand('copy'); } catch (err) {}
+        document.body.removeChild(tempTextArea);
+    }
+    const copyText = (text, event) => performCopy(text, event);
+    const copyAll = (no, exp, cvv, event) => performCopy(`${no} ${exp} ${cvv}`, event);
 
     // 計算本期區間
     function getCycleInfo(card) {
         const now = new Date();
-        let start, end;
-        const type = card.cycleType || 'monthly';
-        
-        if (type === 'monthly') {
-            start = new Date(now.getFullYear(), now.getMonth(), 1);
-            end = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
-        } else {
-            const bDay = parseInt(card.billingDay) || 1;
-            let currentDay = now.getDate();
-            // 台灣信用卡邏輯：如果今天是結帳日之前(含)，帳單月是上個月結帳日+1 到 這個月結帳日
-            if (currentDay <= bDay) {
-                start = new Date(now.getFullYear(), now.getMonth() - 1, bDay + 1);
-                end = new Date(now.getFullYear(), now.getMonth(), bDay, 23, 59, 59, 999);
-            } else {
-                start = new Date(now.getFullYear(), now.getMonth(), bDay + 1);
-                end = new Date(now.getFullYear(), now.getMonth() + 1, bDay, 23, 59, 59, 999);
-            }
+        const y = now.getFullYear(), m = now.getMonth();
+        if ((card.cycleType || 'monthly') === 'monthly') {
+            return { start: new Date(y, m, 1), end: new Date(y, m + 1, 0, 23, 59, 59, 999) };
         }
-        return { start, end };
+        const bDay = parseInt(card.billingDay) || 1;
+        return now.getDate() <= bDay 
+            ? { start: new Date(y, m - 1, bDay + 1), end: new Date(y, m, bDay, 23, 59, 59, 999) }
+            : { start: new Date(y, m, bDay + 1), end: new Date(y, m + 1, bDay, 23, 59, 59, 999) };
     }
 
-    // 計算本期累積消費
-    function calculateCurrentSpend(card) {
+    function calculateCurrentSpend(card, cycle = getCycleInfo(card)) {
         if (!card.expenses || card.expenses.length === 0) return 0;
-        const cycle = getCycleInfo(card);
         return card.expenses
             .filter(e => e.timestamp >= cycle.start.getTime() && e.timestamp <= cycle.end.getTime())
             .reduce((sum, e) => sum + e.amount, 0);
     }
 
-    // 計算階梯式回饋
     function calculateReward(spend, tiers) {
         if (!tiers || tiers.length === 0) return { reward: 0, maxLimit: null };
-        let sortedTiers = [...tiers].sort((a, b) => {
-            let limitA = a.limit === null ? Infinity : a.limit;
-            let limitB = b.limit === null ? Infinity : b.limit;
-            return limitA - limitB;
-        });
-
+        let sorted = [...tiers].sort((a, b) => (a.limit === null ? Infinity : a.limit) - (b.limit === null ? Infinity : b.limit));
+        
         let reward = 0, previousLimit = 0;
-        let absoluteMaxLimit = sortedTiers[sortedTiers.length - 1].limit;
-
-        for (let tier of sortedTiers) {
-            let currentTierLimit = tier.limit === null ? Infinity : tier.limit;
-            let limitForThisTier = currentTierLimit - previousLimit;
-            let spendInThisTier = Math.max(0, Math.min(spend - previousLimit, limitForThisTier));
-            
-            reward += spendInThisTier * (tier.rate / 100);
-            previousLimit = currentTierLimit;
+        for (let tier of sorted) {
+            let currentLimit = tier.limit === null ? Infinity : tier.limit;
+            let spendInTier = Math.max(0, Math.min(spend - previousLimit, currentLimit - previousLimit));
+            reward += spendInTier * (tier.rate / 100);
+            previousLimit = currentLimit;
             if (spend <= previousLimit) break;
         }
-        return { reward: Math.round(reward), maxLimit: absoluteMaxLimit };
+        return { reward: Math.round(reward), maxLimit: sorted[sorted.length - 1].limit };
     }
 
     // 渲染卡片
@@ -611,11 +596,7 @@
         const filterH = document.getElementById('filter-holder').value;
         container.innerHTML = '';
 
-        let filtered = cards.filter(c => 
-            (filterB === 'All' || c.bank === filterB) &&
-            (filterH === 'All' || c.holder === filterH)
-        );
-
+        let filtered = cards.filter(c => (filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH));
         if (filtered.length === 0) {
             container.innerHTML = '<div style="text-align:center; margin-top:60px; color:#7f8fa6; font-size:16px;">📭 目前沒有相符的卡片</div>';
             return;
@@ -626,58 +607,39 @@
         filtered.forEach((card, index) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'card-wrapper';
-            if (!isListView) {
-                wrapper.style.top = `${index * 48}px`;
-                wrapper.style.zIndex = index;
-            }
+            if (!isListView) { wrapper.style.top = `${index * 48}px`; wrapper.style.zIndex = index; }
 
             const eTicketHtml = card.etype !== '無' ? 
-                `<div class="card-row">
-                    <div>
-                        <span class="card-label">${card.etype}：</span>
-                        <span class="card-value">${formatCC(card.eticket)}</span>
-                    </div>
-                    <button class="copy-btn" onclick="copyText('${card.eticket}', event)">複製</button>
-                </div>` : '';
-
+                `<div class="card-row"><div><span class="card-label">${card.etype}：</span><span class="card-value">${formatCC(card.eticket)}</span></div><button class="copy-btn" onclick="copyText('${card.eticket}', event)">複製</button></div>` : '';
             const noteBtnHtml = card.note ? `<button class="copy-btn" style="background:rgba(255,255,255,0.25); padding:8px 12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openNoteModal('${card.id}', event)">📝 備註</button>` : '';
             const expenseBtnHtml = `<button class="copy-btn" style="background:rgba(255,255,255,0.25); padding:8px 12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openExpenseModal('${card.id}', event)">💵 記帳明細</button>`;
 
-            let spendProgressHtml = '';
-            let currentSpend = calculateCurrentSpend(card);
             const cycle = getCycleInfo(card);
-            const cycleStr = `${(cycle.start.getMonth()+1).toString().padStart(2,'0')}/${cycle.start.getDate().toString().padStart(2,'0')} - ${(cycle.end.getMonth()+1).toString().padStart(2,'0')}/${cycle.end.getDate().toString().padStart(2,'0')}`;
+            const cycleStr = `${padNum(cycle.start.getMonth()+1)}/${padNum(cycle.start.getDate())} - ${padNum(cycle.end.getMonth()+1)}/${padNum(cycle.end.getDate())}`;
+            const currentSpend = calculateCurrentSpend(card, cycle);
             
+            let spendProgressHtml = '';
             if (card.tiers && card.tiers.length > 0) {
-                let rewardInfo = calculateReward(currentSpend, card.tiers);
-                let isInfinity = rewardInfo.maxLimit === null;
-                let limitDisplay = isInfinity ? '無上限' : formatMoney(rewardInfo.maxLimit);
-                let percentage = isInfinity ? 0 : Math.min(100, (currentSpend / rewardInfo.maxLimit) * 100);
+                let rInfo = calculateReward(currentSpend, card.tiers);
+                let limitDisplay = rInfo.maxLimit === null ? '無上限' : formatMoney(rInfo.maxLimit);
+                let percentage = rInfo.maxLimit === null ? 0 : Math.min(100, (currentSpend / rInfo.maxLimit) * 100);
                 let barColor = percentage >= 100 ? '#ff4757' : '#2ed573';
 
                 spendProgressHtml = `
                     <div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); position: relative; z-index: 2;">
-                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#d1d8e0;">
-                            <span>帳單月: ${cycleStr}</span>
-                        </div>
+                        <div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#d1d8e0;"><span>帳單月: ${cycleStr}</span></div>
                         <div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);">
                             <span>累積: <strong style="font-size:15px; letter-spacing:0.5px;">$${formatMoney(currentSpend)}</strong> / $${limitDisplay}</span>
-                            <span style="color:#ffd32a; font-weight:bold; font-size:13px;">預估回饋: $${formatMoney(rewardInfo.reward)}</span>
+                            <span style="color:#ffd32a; font-weight:bold; font-size:13px;">預估回饋: $${formatMoney(rInfo.reward)}</span>
                         </div>
-                        ${!isInfinity ? `
-                        <div style="width:100%; background:rgba(255,255,255,0.15); height:8px; border-radius:4px; overflow:hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);">
-                            <div style="width:${percentage}%; background:${barColor}; height:100%; transition:width 0.5s ease-out; box-shadow: 0 0 5px ${barColor};"></div>
-                        </div>
-                        ` : ''}
-                    </div>
-                `;
+                        ${rInfo.maxLimit !== null ? `<div style="width:100%; background:rgba(255,255,255,0.15); height:8px; border-radius:4px; overflow:hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);"><div style="width:${percentage}%; background:${barColor}; height:100%; transition:width 0.5s ease-out; box-shadow: 0 0 5px ${barColor};"></div></div>` : ''}
+                    </div>`;
             } else if (currentSpend > 0) {
                 spendProgressHtml = `
                     <div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; font-size:12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); position: relative; z-index: 2;">
                         <div style="font-size:11px; color:#d1d8e0; margin-bottom:4px;">帳單月: ${cycleStr}</div>
                         <span style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);">累積消費: <strong style="font-size:15px; letter-spacing:0.5px;">$${formatMoney(currentSpend)}</strong></span>
-                    </div>
-                `;
+                    </div>`;
             }
 
             wrapper.innerHTML = `
@@ -696,34 +658,22 @@
                             <button class="copy-btn" onclick="copyText('${card.no}', event)">複製</button>
                         </div>
                         <div class="card-row" style="background:transparent; padding:0; box-shadow:none;">
-                            <div class="card-row" style="flex:1; margin-right:6px; margin-bottom:0;">
-                                <span class="card-label">VALID：</span><span class="card-value">${formatExpiryDisplay(card.expiry)}</span>
-                                <button class="copy-btn" onclick="copyText('${card.expiry}', event)">複製</button>
-                            </div>
-                            <div class="card-row" style="flex:1; margin-left:6px; margin-bottom:0;">
-                                <span class="card-label">CVV：</span><span class="card-value">${card.cvv}</span>
-                                <button class="copy-btn" onclick="copyText('${card.cvv}', event)">複製</button>
-                            </div>
+                            <div class="card-row" style="flex:1; margin-right:6px; margin-bottom:0;"><span class="card-label">VALID：</span><span class="card-value">${formatExpiryDisplay(card.expiry)}</span><button class="copy-btn" onclick="copyText('${card.expiry}', event)">複製</button></div>
+                            <div class="card-row" style="flex:1; margin-left:6px; margin-bottom:0;"><span class="card-label">CVV：</span><span class="card-value">${card.cvv}</span><button class="copy-btn" onclick="copyText('${card.cvv}', event)">複製</button></div>
                         </div>
-                        ${eTicketHtml}
-                        ${spendProgressHtml}
+                        ${eTicketHtml} ${spendProgressHtml}
                         <div class="action-row" style="position: relative; z-index: 2;">
-                            ${noteBtnHtml}
-                            ${expenseBtnHtml}
-                            <button class="copy-btn" style="background:rgba(255,255,255,0.85); color:#2c3e50; font-weight:bold; flex:1; padding:8px 12px; box-shadow: 0 3px 6px rgba(0,0,0,0.2);" 
-                                onclick="copyAll('${card.no}', '${card.expiry}', '${card.cvv}', event)">
-                                📋 結帳全複製
-                            </button>
+                            ${noteBtnHtml} ${expenseBtnHtml}
+                            <button class="copy-btn" style="background:rgba(255,255,255,0.85); color:#2c3e50; font-weight:bold; flex:1; padding:8px 12px; box-shadow: 0 3px 6px rgba(0,0,0,0.2);" onclick="copyAll('${card.no}', '${card.expiry}', '${card.cvv}', event)">📋 結帳全複製</button>
                         </div>
                     </div>
                     <div class="org-logo">${card.org}</div>
-                </div>
-            `;
+                </div>`;
             container.appendChild(wrapper);
         });
     }
 
-    // 視圖切換與複製
+    // 視圖切換
     function toggleView() {
         isListView = !isListView;
         document.getElementById('view-toggle-btn').innerText = isListView ? '📋 清單' : '🗂️ 堆疊';
@@ -731,8 +681,7 @@
     }
 
     function toggleStackCard(element, event) {
-        if (isListView) return;
-        if(event.target.tagName === 'BUTTON' || event.target.tagName === 'A') return; 
+        if (isListView || event.target.tagName === 'BUTTON' || event.target.tagName === 'A') return; 
         const wrapper = element.parentElement;
         if (wrapper.classList.contains('expanded')) {
             wrapper.classList.remove('expanded');
@@ -742,120 +691,65 @@
         }
     }
 
-    function copyText(text, event) {
-        if(event) event.stopPropagation();
-        const tempTextArea = document.createElement("textarea");
-        tempTextArea.value = text;
-        document.body.appendChild(tempTextArea);
-        tempTextArea.select();
-        try { document.execCommand('copy'); } catch (err) {}
-        document.body.removeChild(tempTextArea);
-    }
-    
-    function copyAll(no, exp, cvv, event) {
-        if(event) event.stopPropagation();
-        const text = `${no} ${exp} ${cvv}`;
-        const tempTextArea = document.createElement("textarea");
-        tempTextArea.value = text;
-        document.body.appendChild(tempTextArea);
-        tempTextArea.select();
-        try { document.execCommand('copy'); } catch (err) {}
-        document.body.removeChild(tempTextArea);
-    }
-
     // 彈窗與輸入處理
-    function closePopupModal(modalId) {
-        document.getElementById(modalId).style.display = 'none';
-        closeKeypad();
-    }
+    function closePopupModal(modalId) { document.getElementById(modalId).style.display = 'none'; closeKeypad(); }
 
     function handleInput(el) {
         let val = el.value.replace(/\D/g, ''); 
-        let maxLength = 16; 
-        if (el.id === 'card-expiry') maxLength = 4;
-        else if (el.id === 'card-cvv') maxLength = 3;
-        else if (el.id === 'expense-amount') maxLength = 8;
-        if (val.length > maxLength) val = val.substring(0, maxLength);
-        el.value = val;
+        let maxL = (el.id === 'card-expiry') ? 4 : (el.id === 'card-cvv') ? 3 : (el.id === 'expense-amount') ? 8 : 16;
+        el.value = val.substring(0, maxL);
     }
 
-    // 自訂到期日選擇器邏輯
+    // 自訂到期日選擇器
     function openExpiryPicker() {
-        const currentVal = document.getElementById('card-expiry').value;
-        const now = new Date();
-        let currentY = parseInt(now.getFullYear().toString().substring(2, 4));
+        const val = document.getElementById('card-expiry').value;
+        let cy = parseInt(new Date().getFullYear().toString().substring(2, 4));
 
-        if (currentVal && currentVal.length === 4) {
-            tempSelectedMonth = currentVal.substring(0, 2);
-            tempSelectedYear = currentVal.substring(2, 4);
-            
-            // 計算目前選取的年份屬於哪一個分頁，讓開啟時能直接看到
-            let selY = parseInt(tempSelectedYear);
-            let diff = selY - currentY;
-            let pages = Math.floor(diff / 12);
-            currentYearPageStart = currentY + (pages * 12);
+        if (val && val.length === 4) {
+            tempSelectedMonth = val.substring(0, 2);
+            tempSelectedYear = val.substring(2, 4);
+            currentYearPageStart = cy + (Math.floor((parseInt(tempSelectedYear) - cy) / 12) * 12);
         } else {
-            let m = now.getMonth() + 1;
-            tempSelectedMonth = m < 10 ? '0' + m : '' + m;
-            tempSelectedYear = currentY.toString();
-            currentYearPageStart = currentY;
+            tempSelectedMonth = padNum(new Date().getMonth() + 1);
+            tempSelectedYear = cy.toString();
+            currentYearPageStart = cy;
         }
         
-        // 確保範圍不小於 00
         if (currentYearPageStart < 0) currentYearPageStart = 0;
-        
         renderExpiryGrids();
         document.getElementById('expiry-modal').style.display = 'flex';
-        closeKeypad(); // 確保不會和數字鍵盤同時出現
+        closeKeypad(); 
     }
     
-    // 年份翻頁功能
-    function changeYearPage(direction) {
-        currentYearPageStart += (direction * 12);
-        
-        // 限制範圍 00 到 99
-        if (currentYearPageStart < 0) currentYearPageStart = 0;
-        if (currentYearPageStart > 88) currentYearPageStart = 88; // 因為一次顯示12年，所以最多從 88 開始 (88~99)
-        
+    function changeYearPage(dir) {
+        currentYearPageStart = Math.max(0, Math.min(88, currentYearPageStart + (dir * 12)));
         renderExpiryGrids();
     }
 
     function renderExpiryGrids() {
-        // 月份網格
         const mGrid = document.getElementById('expiry-month-grid');
-        mGrid.innerHTML = '';
-        for (let i = 1; i <= 12; i++) {
-            let mStr = i < 10 ? '0' + i : '' + i;
-            let activeCls = tempSelectedMonth === mStr ? 'active' : '';
-            mGrid.innerHTML += `<div class="expiry-btn ${activeCls}" onclick="setTempExpiry('month', '${mStr}')">${mStr}</div>`;
-        }
+        mGrid.innerHTML = Array.from({length: 12}, (_, i) => {
+            let mStr = padNum(i + 1);
+            return `<div class="expiry-btn ${tempSelectedMonth === mStr ? 'active' : ''}" onclick="setTempExpiry('month', '${mStr}')">${mStr}</div>`;
+        }).join('');
         
-        // 年份網格 (依照目前 currentYearPageStart 算 12 年)
         const yGrid = document.getElementById('expiry-year-grid');
-        yGrid.innerHTML = '';
-        for (let i = 0; i < 12; i++) {
+        yGrid.innerHTML = Array.from({length: 12}, (_, i) => {
             let y = currentYearPageStart + i;
-            if (y > 99) break; // 超過 99 就不要再渲染
-            
-            let yStr = y < 10 ? '0' + y : y.toString();
-            let activeCls = tempSelectedYear === yStr ? 'active' : '';
-            yGrid.innerHTML += `<div class="expiry-btn ${activeCls}" onclick="setTempExpiry('year', '${yStr}')">${yStr}</div>`;
-        }
+            if (y > 99) return ''; 
+            let yStr = padNum(y);
+            return `<div class="expiry-btn ${tempSelectedYear === yStr ? 'active' : ''}" onclick="setTempExpiry('year', '${yStr}')">${yStr}</div>`;
+        }).join('');
     }
 
     function setTempExpiry(type, val) {
-        if (type === 'month') {
-            tempSelectedMonth = val;
-        } else {
-            tempSelectedYear = val;
-        }
+        type === 'month' ? (tempSelectedMonth = val) : (tempSelectedYear = val);
         renderExpiryGrids();
     }
 
     function confirmExpiry() {
         const input = document.getElementById('card-expiry');
         input.value = tempSelectedMonth + tempSelectedYear;
-        // 觸發 input 事件，如果有相依邏輯可以生效
         input.dispatchEvent(new Event('input')); 
         closePopupModal('expiry-modal');
     }
@@ -863,8 +757,9 @@
     // 記帳明細功能
     function openExpenseModal(id, event) {
         if(event) event.stopPropagation();
-        const card = cards.find(c => c.id === id);
-        if(!card) return;
+        const data = getCardData(id);
+        if(!data) return;
+        const { card } = data;
         
         document.getElementById('expense-title').innerText = `記帳 - ${card.name}`;
         document.getElementById('expense-card-id').value = card.id;
@@ -873,10 +768,8 @@
         document.getElementById('expense-note').value = '';
         document.getElementById('btn-save-expense').innerText = '💾 儲存';
         
-        // 顯示帳單月
         const cycle = getCycleInfo(card);
-        const pad = (n) => n.toString().padStart(2, '0');
-        document.getElementById('expense-cycle-display').innerText = `${pad(cycle.start.getMonth()+1)}/${pad(cycle.start.getDate())} - ${pad(cycle.end.getMonth()+1)}/${pad(cycle.end.getDate())}`;
+        document.getElementById('expense-cycle-display').innerText = `${padNum(cycle.start.getMonth()+1)}/${padNum(cycle.start.getDate())} - ${padNum(cycle.end.getMonth()+1)}/${padNum(cycle.end.getDate())}`;
 
         renderExpenseList(card, cycle);
         document.getElementById('expense-modal').style.display = 'flex';
@@ -884,84 +777,64 @@
 
     function renderExpenseList(card, cycle) {
         const container = document.getElementById('expense-list-container');
-        container.innerHTML = '';
-        
         if (!card.expenses) card.expenses = [];
         
-        // 過濾出本期紀錄並排序 (新的在上面)
-        const currentExpenses = card.expenses
+        const currExps = card.expenses
             .filter(e => e.timestamp >= cycle.start.getTime() && e.timestamp <= cycle.end.getTime())
             .sort((a, b) => b.timestamp - a.timestamp);
 
-        if (currentExpenses.length === 0) {
+        if (currExps.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding: 20px; color:#bdc3c7;">尚無消費紀錄</div>';
             return;
         }
 
-        currentExpenses.forEach(exp => {
-            container.innerHTML += `
-                <div class="expense-item">
-                    <div class="expense-info">
-                        <div class="expense-date">${formatDate(exp.timestamp)}</div>
-                        ${exp.note ? `<div class="expense-note-text">${exp.note}</div>` : ''}
-                    </div>
-                    <div class="expense-amt">$${formatMoney(exp.amount)}</div>
-                    <div class="expense-actions">
-                        <button class="btn-outline" style="border-color:#bdc3c7; color:#7f8c8d;" onclick="editExpenseRecord('${exp.id}')">✏️</button>
-                        <button class="btn-danger" onclick="deleteExpenseRecord('${exp.id}')">✖</button>
-                    </div>
+        container.innerHTML = currExps.map(exp => `
+            <div class="expense-item">
+                <div class="expense-info">
+                    <div class="expense-date">${formatDate(exp.timestamp)}</div>
+                    ${exp.note ? `<div class="expense-note-text">${exp.note}</div>` : ''}
                 </div>
-            `;
-        });
+                <div class="expense-amt">$${formatMoney(exp.amount)}</div>
+                <div class="expense-actions">
+                    <button class="btn-outline" style="border-color:#bdc3c7; color:#7f8c8d;" onclick="editExpenseRecord('${exp.id}')">✏️</button>
+                    <button class="btn-danger" onclick="deleteExpenseRecord('${exp.id}')">✖</button>
+                </div>
+            </div>
+        `).join('');
     }
 
     function saveExpense() {
-        const cardId = document.getElementById('expense-card-id').value;
+        const data = getCardData(document.getElementById('expense-card-id').value);
+        if (!data) return;
+        const { card, index } = data;
         const editId = document.getElementById('editing-expense-id').value;
-        const amountStr = document.getElementById('expense-amount').value;
+        const amount = Number(document.getElementById('expense-amount').value);
         const noteStr = document.getElementById('expense-note').value.trim();
-        const amount = Number(amountStr);
         
         if (!amount || amount <= 0) return alert('請輸入有效的金額');
 
-        const cardIndex = cards.findIndex(c => c.id === cardId);
-        if (cardIndex > -1) {
-            if (!cards[cardIndex].expenses) cards[cardIndex].expenses = [];
-            
-            if (editId) {
-                // 更新模式
-                const expIndex = cards[cardIndex].expenses.findIndex(e => e.id === editId);
-                if(expIndex > -1) {
-                    cards[cardIndex].expenses[expIndex].amount = amount;
-                    cards[cardIndex].expenses[expIndex].note = noteStr;
-                }
-            } else {
-                // 新增模式
-                cards[cardIndex].expenses.push({
-                    id: generateId(),
-                    timestamp: new Date().getTime(),
-                    amount: amount,
-                    note: noteStr
-                });
-            }
-            
-            saveAndBackup();
-            renderCards();
-            
-            // 清空輸入並重繪清單
-            document.getElementById('editing-expense-id').value = '';
-            document.getElementById('expense-amount').value = '';
-            document.getElementById('expense-note').value = '';
-            document.getElementById('btn-save-expense').innerText = '💾 儲存';
-            renderExpenseList(cards[cardIndex], getCycleInfo(cards[cardIndex]));
-            closeKeypad();
+        if (!card.expenses) card.expenses = [];
+        if (editId) {
+            const exp = card.expenses.find(e => e.id === editId);
+            if(exp) { exp.amount = amount; exp.note = noteStr; }
+        } else {
+            card.expenses.push({ id: generateId(), timestamp: new Date().getTime(), amount, note: noteStr });
         }
+        
+        saveAndBackup(); renderCards();
+        
+        document.getElementById('editing-expense-id').value = '';
+        document.getElementById('expense-amount').value = '';
+        document.getElementById('expense-note').value = '';
+        document.getElementById('btn-save-expense').innerText = '💾 儲存';
+        renderExpenseList(card, getCycleInfo(card));
+        closeKeypad();
     }
 
     function editExpenseRecord(expId) {
-        const cardId = document.getElementById('expense-card-id').value;
-        const card = cards.find(c => c.id === cardId);
-        const exp = card.expenses.find(e => e.id === expId);
+        const data = getCardData(document.getElementById('expense-card-id').value);
+        if(!data) return;
+        const exp = data.card.expenses.find(e => e.id === expId);
         if(exp) {
             document.getElementById('editing-expense-id').value = exp.id;
             document.getElementById('expense-amount').value = exp.amount;
@@ -972,115 +845,81 @@
 
     function deleteExpenseRecord(expId) {
         if(!confirm('確定刪除這筆紀錄？')) return;
-        const cardId = document.getElementById('expense-card-id').value;
-        const cardIndex = cards.findIndex(c => c.id === cardId);
-        if (cardIndex > -1) {
-            cards[cardIndex].expenses = cards[cardIndex].expenses.filter(e => e.id !== expId);
-            saveAndBackup();
-            renderCards();
-            renderExpenseList(cards[cardIndex], getCycleInfo(cards[cardIndex]));
+        const data = getCardData(document.getElementById('expense-card-id').value);
+        if (data) {
+            data.card.expenses = data.card.expenses.filter(e => e.id !== expId);
+            saveAndBackup(); renderCards(); renderExpenseList(data.card, getCycleInfo(data.card));
         }
     }
 
     // 備註彈窗
     function openNoteModal(id, event) {
         if(event) event.stopPropagation();
-        const card = cards.find(c => c.id === id);
-        if(!card || !card.note) return;
-        document.getElementById('view-note-title').innerText = `${card.name} - 備註`;
-        document.getElementById('view-note-content').innerHTML = linkify(card.note);
+        const data = getCardData(id);
+        if(!data || !data.card.note) return;
+        document.getElementById('view-note-title').innerText = `${data.card.name} - 備註`;
+        document.getElementById('view-note-content').innerHTML = linkify(data.card.note);
         document.getElementById('view-note-modal').style.display = 'flex';
     }
 
     // 卡片表單邏輯
     function toggleBillingDay() {
-        const type = document.getElementById('card-cycle-type').value;
-        document.getElementById('billing-day-container').style.display = type === 'billing' ? 'block' : 'none';
+        document.getElementById('billing-day-container').style.display = document.getElementById('card-cycle-type').value === 'billing' ? 'block' : 'none';
     }
 
     function renderTiers() {
-        const container = document.getElementById('tiers-container');
-        container.innerHTML = '';
-        currentEditingTiers.forEach((tier, idx) => {
-            let limitVal = tier.limit === null ? '' : tier.limit;
-            container.innerHTML += `
-                <div class="tier-row">
-                    <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">上限</span>
-                    <input type="number" placeholder="無上限留空" value="${limitVal}" onchange="updateTier(${idx}, 'limit', this.value)" style="flex:2; box-shadow:inset 0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">元, 回饋</span>
-                    <input type="number" step="0.1" placeholder="%" value="${tier.rate}" onchange="updateTier(${idx}, 'rate', this.value)" style="flex:1; box-shadow:inset 0 1px 3px rgba(0,0,0,0.05);">
-                    <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">%</span>
-                    <button class="btn-danger" style="padding:8px 12px; font-size:12px; box-shadow: 0 3px 0 #c0392b; border-radius:8px;" onclick="removeTier(${idx}, event)">X</button>
-                </div>
-            `;
-        });
+        document.getElementById('tiers-container').innerHTML = currentEditingTiers.map((tier, idx) => `
+            <div class="tier-row">
+                <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">上限</span>
+                <input type="number" placeholder="無上限留空" value="${tier.limit === null ? '' : tier.limit}" onchange="updateTier(${idx}, 'limit', this.value)" style="flex:2; box-shadow:inset 0 1px 3px rgba(0,0,0,0.05);">
+                <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">元, 回饋</span>
+                <input type="number" step="0.1" placeholder="%" value="${tier.rate}" onchange="updateTier(${idx}, 'rate', this.value)" style="flex:1; box-shadow:inset 0 1px 3px rgba(0,0,0,0.05);">
+                <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">%</span>
+                <button class="btn-danger" style="padding:8px 12px; font-size:12px; box-shadow: 0 3px 0 #c0392b; border-radius:8px;" onclick="removeTier(${idx}, event)">X</button>
+            </div>
+        `).join('');
     }
 
-    function addTier(e) {
-        if(e) e.preventDefault();
-        currentEditingTiers.push({ limit: null, rate: 0 });
-        renderTiers();
-    }
+    function addTier(e) { if(e) e.preventDefault(); currentEditingTiers.push({ limit: null, rate: 0 }); renderTiers(); }
+    function updateTier(idx, f, v) { currentEditingTiers[idx][f] = (f === 'limit') ? (v === '' || isNaN(v) ? null : Number(v)) : Number(v); }
+    function removeTier(idx, e) { if(e) e.preventDefault(); currentEditingTiers.splice(idx, 1); renderTiers(); }
 
-    function updateTier(idx, field, value) {
-        if (field === 'limit') currentEditingTiers[idx].limit = (value === '' || isNaN(value)) ? null : Number(value);
-        else currentEditingTiers[idx].rate = Number(value);
-    }
-
-    function removeTier(idx, e) {
-        if(e) e.preventDefault();
-        currentEditingTiers.splice(idx, 1);
-        renderTiers();
+    function fillForm(card = {}) {
+        document.getElementById('card-id').value = card.id || '';
+        document.getElementById('card-name').value = card.name || '';
+        if(card.bank) document.getElementById('card-bank').value = card.bank;
+        if(card.org) document.getElementById('card-org').value = card.org;
+        document.getElementById('card-no').value = card.no || '';
+        document.getElementById('card-expiry').value = card.expiry || '';
+        document.getElementById('card-cvv').value = card.cvv || '';
+        if(card.etype) document.getElementById('card-etype').value = card.etype;
+        document.getElementById('card-eticket').value = card.eticket || '';
+        document.getElementById('card-note').value = card.note || ''; 
+        document.getElementById('card-cycle-type').value = card.cycleType || 'monthly';
+        document.getElementById('card-billing-day').value = card.billingDay || '';
     }
 
     function openModal() {
         document.getElementById('modal-title').innerText = '新增卡片';
-        document.getElementById('card-id').value = '';
-        document.getElementById('card-name').value = '';
-        document.getElementById('card-no').value = '';
-        document.getElementById('card-expiry').value = '';
-        document.getElementById('card-cvv').value = '';
-        document.getElementById('card-eticket').value = '';
-        document.getElementById('card-etype').value = '無';
-        document.getElementById('card-note').value = ''; 
-        
-        document.getElementById('card-cycle-type').value = 'monthly';
-        document.getElementById('card-billing-day').value = '';
+        fillForm({ etype: '無' });
         toggleBillingDay();
-
-        currentEditingTiers = [];
-        renderTiers();
+        currentEditingTiers = []; renderTiers();
         document.getElementById('btn-delete').style.display = 'none';
         document.getElementById('form-modal').style.display = 'block';
     }
 
-    function closeModal() {
-        document.getElementById('form-modal').style.display = 'none';
-        closeKeypad();
-    }
+    function closeModal() { document.getElementById('form-modal').style.display = 'none'; closeKeypad(); }
 
     function editCard(id, event) {
         if(event) event.stopPropagation();
-        const card = cards.find(c => c.id === id);
-        if(!card) return;
+        const data = getCardData(id);
+        if(!data) return;
         
         document.getElementById('modal-title').innerText = '編輯卡片';
-        document.getElementById('card-id').value = card.id;
-        document.getElementById('card-name').value = card.name;
-        document.getElementById('card-bank').value = card.bank;
-        document.getElementById('card-org').value = card.org;
-        document.getElementById('card-no').value = card.no;
-        document.getElementById('card-expiry').value = card.expiry;
-        document.getElementById('card-cvv').value = card.cvv;
-        document.getElementById('card-etype').value = card.etype;
-        document.getElementById('card-eticket').value = card.eticket || '';
-        document.getElementById('card-note').value = card.note || '';
-        
-        document.getElementById('card-cycle-type').value = card.cycleType || 'monthly';
-        document.getElementById('card-billing-day').value = card.billingDay || '';
+        fillForm(data.card);
         toggleBillingDay();
         
-        currentEditingTiers = card.tiers ? JSON.parse(JSON.stringify(card.tiers)) : [];
+        currentEditingTiers = data.card.tiers ? JSON.parse(JSON.stringify(data.card.tiers)) : [];
         renderTiers();
         
         document.getElementById('btn-delete').style.display = 'block';
@@ -1090,50 +929,35 @@
     function saveCard() {
         const id = document.getElementById('card-id').value || generateId();
         const name = document.getElementById('card-name').value;
-        const holder = detectHolder(name); 
-        const bank = document.getElementById('card-bank').value;
-        const org = document.getElementById('card-org').value;
         const no = document.getElementById('card-no').value;
-        const expiry = document.getElementById('card-expiry').value;
-        const cvv = document.getElementById('card-cvv').value;
-        const etype = document.getElementById('card-etype').value;
-        const eticket = document.getElementById('card-eticket').value;
-        const note = document.getElementById('card-note').value.trim();
-        const cycleType = document.getElementById('card-cycle-type').value;
-        const billingDay = document.getElementById('card-billing-day').value;
-
         if(!name || !no) return alert('請至少輸入名稱與卡號');
 
-        let sortedTiers = [...currentEditingTiers].sort((a, b) => {
-            let limitA = a.limit === null ? Infinity : a.limit;
-            let limitB = b.limit === null ? Infinity : b.limit;
-            return limitA - limitB;
-        });
-
-        // 尋找既有卡片資料，保留其 expenses
-        const existingIndex = cards.findIndex(c => c.id === id);
-        let preservedExpenses = existingIndex > -1 ? (cards[existingIndex].expenses || []) : [];
+        const sortedTiers = [...currentEditingTiers].sort((a, b) => (a.limit === null ? Infinity : a.limit) - (b.limit === null ? Infinity : b.limit));
+        const data = getCardData(id);
+        const preservedExpenses = data ? (data.card.expenses || []) : [];
 
         const cardData = { 
-            id, name, holder, bank, org, no, expiry, cvv, etype, eticket, note, 
-            cycleType, billingDay, tiers: sortedTiers, expenses: preservedExpenses 
+            id, name, holder: detectHolder(name), 
+            bank: document.getElementById('card-bank').value, 
+            org: document.getElementById('card-org').value, 
+            no, expiry: document.getElementById('card-expiry').value, 
+            cvv: document.getElementById('card-cvv').value, 
+            etype: document.getElementById('card-etype').value, 
+            eticket: document.getElementById('card-eticket').value, 
+            note: document.getElementById('card-note').value.trim(), 
+            cycleType: document.getElementById('card-cycle-type').value, 
+            billingDay: document.getElementById('card-billing-day').value, 
+            tiers: sortedTiers, expenses: preservedExpenses 
         };
         
-        if (existingIndex > -1) cards[existingIndex] = cardData;
-        else cards.push(cardData);
-
-        saveAndBackup();
-        closeModal();
-        renderCards();
+        data ? (cards[data.index] = cardData) : cards.push(cardData);
+        saveAndBackup(); closeModal(); renderCards();
     }
 
     function deleteCard() {
         if(!confirm('確定要刪除此卡片？')) return;
-        const id = document.getElementById('card-id').value;
-        cards = cards.filter(c => c.id !== id);
-        saveAndBackup();
-        closeModal();
-        renderCards();
+        cards = cards.filter(c => c.id !== document.getElementById('card-id').value);
+        saveAndBackup(); closeModal(); renderCards();
     }
 
     // 設定、備份與還原
@@ -1149,8 +973,7 @@
     }
 
     function updateBackupStatus(timeStr) {
-        const el = document.getElementById('backup-status');
-        if (timeStr) el.innerText = `✅ 最新自動備份：${timeStr}`;
+        if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`;
     }
 
     function exportData(type, isAuto = false) {
@@ -1164,38 +987,18 @@
             filename = `信用卡夾程式備份_${timeKey}.json`;
             mimeType = 'application/json';
         } else if (type === 'txt') {
-            const grouped = {};
-            cards.forEach(c => {
-                if(!grouped[c.bank]) grouped[c.bank] = [];
-                grouped[c.bank].push(c);
-            });
-
-            Object.keys(grouped).forEach(bank => {
+            const grouped = cards.reduce((acc, c) => { (acc[c.bank] = acc[c.bank] || []).push(c); return acc; }, {});
+            Object.entries(grouped).forEach(([bank, bCards]) => {
                 content += `========================\n【${bank}】\n`;
-                grouped[bank].sort((a, b) => {
-                    if(a.holder === '宏和' && b.holder !== '宏和') return -1;
-                    if(a.holder !== '宏和' && b.holder === '宏和') return 1;
-                    if(a.holder === '瑋淨' && b.holder !== '瑋淨') return -1;
-                    if(a.holder !== '瑋淨' && b.holder === '瑋淨') return 1;
-                    return 0;
-                });
-
-                grouped[bank].forEach(c => {
-                    content += `------------------------\n`;
-                    content += `卡片名稱：${c.name}\n`;
-                    content += `持卡人：${c.holder}\n`;
-                    content += `發卡組織：${c.org}\n`;
-                    content += `卡號：${formatCC(c.no)}\n`;
-                    content += `到期日：${formatExpiryDisplay(c.expiry)}\n`;
-                    content += `驗證碼：${c.cvv}\n`;
-                    content += `電子票證：${c.etype !== '無' ? c.etype + ' ' + formatCC(c.eticket) : '無'}\n`;
-                    
+                bCards.sort((a, b) => {
+                    const wA = a.holder === '宏和' ? 1 : a.holder === '瑋淨' ? 2 : 3;
+                    const wB = b.holder === '宏和' ? 1 : b.holder === '瑋淨' ? 2 : 3;
+                    return wA - wB;
+                }).forEach(c => {
+                    content += `------------------------\n卡片名稱：${c.name}\n持卡人：${c.holder}\n發卡組織：${c.org}\n卡號：${formatCC(c.no)}\n到期日：${formatExpiryDisplay(c.expiry)}\n驗證碼：${c.cvv}\n電子票證：${c.etype !== '無' ? c.etype + ' ' + formatCC(c.eticket) : '無'}\n`;
                     let currSpend = calculateCurrentSpend(c);
                     if (currSpend > 0) content += `本期累積消費：$${formatMoney(currSpend)}\n`;
-                    if (c.tiers && c.tiers.length > 0) {
-                        let ruleStr = c.tiers.map(t => `${t.limit === null ? '無上限' : t.limit+'元'}(${t.rate}%)`).join(' / ');
-                        content += `回饋規則：${ruleStr}\n`;
-                    }
+                    if (c.tiers && c.tiers.length > 0) content += `回饋規則：${c.tiers.map(t => `${t.limit === null ? '無上限' : t.limit+'元'}(${t.rate}%)`).join(' / ')}\n`;
                     if (c.note) content += `備註：\n${c.note}\n`;
                 });
                 content += `\n`;
@@ -1204,101 +1007,62 @@
             mimeType = 'text/plain';
         }
 
-        const blob = new Blob([content], { type: mimeType });
-        const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
-        a.href = url;
+        a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
         a.download = filename;
-        document.body.appendChild(a);
         a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+        URL.revokeObjectURL(a.href);
     }
 
     function importData(event) {
         const file = event.target.files[0];
         if (!file) return;
-
         const reader = new FileReader();
-        reader.onload = function(e) {
+        reader.onload = e => {
             try {
-                const importedCards = JSON.parse(e.target.result);
-                if (Array.isArray(importedCards)) {
-                    if (confirm('確定要還原此備份檔嗎？目前的卡片資料將會被完全覆蓋。')) {
-                        cards = importedCards;
-                        saveAndBackup(); 
-                        renderCards();
-                        alert('備份檔還原成功！');
-                        closeSettings();
-                    }
-                } else alert('檔案格式錯誤，請選擇由本程式匯出的 JSON 備份檔。');
-            } catch (error) {
-                alert('讀取檔案失敗：' + error.message);
-            }
+                const imported = JSON.parse(e.target.result);
+                if (Array.isArray(imported) && confirm('確定要還原此備份檔嗎？目前的卡片資料將會被完全覆蓋。')) {
+                    cards = imported; saveAndBackup(); renderCards(); closeSettings(); alert('備份檔還原成功！');
+                } else if(!Array.isArray(imported)) alert('檔案格式錯誤，請選擇 JSON 備份檔。');
+            } catch (error) { alert('讀取檔案失敗：' + error.message); }
             event.target.value = '';
         };
         reader.readAsText(file);
     }
 
     // 鍵盤邏輯
-    document.addEventListener('keydown', function(event) {
+    document.addEventListener('keydown', e => {
         if (!activeInputId) return; 
-        const key = event.key;
-        if (/^[0-9]$/.test(key)) { keyPress(key); event.preventDefault(); } 
-        else if (key === 'Backspace') { keyPress('del'); event.preventDefault(); } 
-        else if (key === 'Delete') { keyPress('clear'); event.preventDefault(); } 
-        else if (key === 'Escape' || key === 'Enter') { closeKeypad(); event.preventDefault(); }
+        if (/^[0-9]$/.test(e.key)) { keyPress(e.key); e.preventDefault(); } 
+        else if (e.key === 'Backspace') { keyPress('del'); e.preventDefault(); } 
+        else if (e.key === 'Delete') { keyPress('clear'); e.preventDefault(); } 
+        else if (e.key === 'Escape' || e.key === 'Enter') { closeKeypad(); e.preventDefault(); }
     });
 
     function openKeypad(inputId) {
         activeInputId = inputId;
         document.getElementById('virtual-keypad').style.display = 'grid';
-        setTimeout(() => {
-            const el = document.getElementById(inputId);
-            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        }, 100);
+        setTimeout(() => document.getElementById(inputId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
     }
-
-    function closeKeypad() {
-        activeInputId = null;
-        document.getElementById('virtual-keypad').style.display = 'none';
-    }
+    function closeKeypad() { activeInputId = null; document.getElementById('virtual-keypad').style.display = 'none'; }
 
     function keyPress(val) {
         if (!activeInputId) return;
         const input = document.getElementById(activeInputId);
-        let currentVal = input.value;
-        
-        let start = input.selectionStart || 0;
-        let end = input.selectionEnd || 0;
-
-        let maxLength = 16; 
-        if (activeInputId === 'card-expiry') maxLength = 4;
-        else if (activeInputId === 'card-cvv') maxLength = 3;
-        else if (activeInputId === 'expense-amount') maxLength = 8; 
+        let cur = input.value, s = input.selectionStart || 0, e = input.selectionEnd || 0;
+        let maxL = (activeInputId === 'card-expiry') ? 4 : (activeInputId === 'card-cvv') ? 3 : (activeInputId === 'expense-amount') ? 8 : 16; 
 
         if (val === 'clear') {
-            input.value = '';
-            input.focus();
+            input.value = ''; input.focus();
         } else if (val === 'del') {
-            if (start === end && start > 0) {
-                input.value = currentVal.slice(0, start - 1) + currentVal.slice(end);
-                input.setSelectionRange(start - 1, start - 1);
-            } else if (start !== end) {
-                input.value = currentVal.slice(0, start) + currentVal.slice(end);
-                input.setSelectionRange(start, start);
-            }
+            if (s === e && s > 0) { input.value = cur.slice(0, s - 1) + cur.slice(e); input.setSelectionRange(s - 1, s - 1); } 
+            else if (s !== e) { input.value = cur.slice(0, s) + cur.slice(e); input.setSelectionRange(s, s); }
             input.focus();
         } else {
-            if (activeInputId === 'expense-amount' && currentVal === '0' && start === 1) {
-                input.value = val;
-                input.setSelectionRange(1, 1);
-            } else {
-                let newVal = currentVal.slice(0, start) + val + currentVal.slice(end);
-                if (newVal.length <= maxLength) {
-                    input.value = newVal;
-                    input.setSelectionRange(start + 1, start + 1);
-                }
+            if (activeInputId === 'expense-amount' && cur === '0' && s === 1) {
+                input.value = val; input.setSelectionRange(1, 1);
+            } else if ((cur.slice(0, s) + val + cur.slice(e)).length <= maxL) {
+                input.value = cur.slice(0, s) + val + cur.slice(e); input.setSelectionRange(s + 1, s + 1);
             }
             input.focus();
         }
