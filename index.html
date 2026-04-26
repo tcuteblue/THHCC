@@ -6,14 +6,11 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>信用卡夾</title>
     
-    <!-- PWA 相關設定開始 -->
     <meta name="apple-mobile-web-app-capable" content="yes">
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="apple-mobile-web-app-title" content="信用卡夾">
     <link rel="apple-touch-icon" href="icon.png">
     <link rel="manifest" href='data:application/manifest+json;charset=utf-8,%7B%22name%22%3A%22%E4%BF%A1%E7%94%A8%E5%8D%A1%E5%A4%BE%22%2C%22short_name%22%3A%22%E5%8D%A1%E5%A4%BE%22%2C%22start_url%22%3A%22.%2F%22%2C%22display%22%3A%22standalone%22%2C%22background_color%22%3A%22%23f4f6f8%22%2C%22theme_color%22%3A%22%23333333%22%2C%22icons%22%3A%5B%7B%22src%22%3A%22icon.png%22%2C%22sizes%22%3A%22192x192%20512x512%22%2C%22type%22%3A%22image%2Fpng%22%7D%5D%7D'>
-    <!-- PWA 相關設定結束 -->
-
     <style>
         :root {
             --bg-color: #e9ecef;
@@ -75,13 +72,13 @@
         /* 清單模式 */
         .list-view { display: flex; flex-direction: column; gap: 20px; }
         
-        /* 堆疊模式 */
+        /* 堆疊模式 - 改進為 flex-column 避免溢出容器導致底部卡片被裁切 */
         .stack-view { display: flex; flex-direction: column; padding-top: 10px; padding-bottom: 40px; }
         .stack-view .card-wrapper { position: relative; width: 100%; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }
         .stack-view .card-wrapper:not(.expanded) { 
             height: 70px; 
             overflow: hidden; 
-            margin-top: -15px; 
+            margin-top: -15px; /* 負邊距製造堆疊感 */
             box-shadow: 0 -3px 8px rgba(0,0,0,0.15); 
             transform: scale(0.96); 
             opacity: 0.95; 
@@ -89,7 +86,7 @@
         .stack-view .card-wrapper:not(.expanded):first-child { margin-top: 0; }
         .stack-view .card-wrapper.expanded { 
             height: auto; 
-            z-index: 200 !important; 
+            z-index: 200 !important; /* 確保展開時顯示在最上層 */
             margin-top: 15px; 
             margin-bottom: 25px; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.25); 
@@ -97,13 +94,14 @@
             opacity: 1; 
         }
 
-        /* 卡片本體設計 */
+        /* 卡片本體設計 - 增加光澤與立體厚度 */
         .card { 
             border-radius: 18px; padding: 20px; color: white; position: relative; overflow: hidden;
             box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 2px 2px rgba(255,255,255,0.3), inset 0 -2px 5px rgba(0,0,0,0.1); 
             min-height: 210px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1);
             transition: all 0.3s ease;
         }
+        /* 仿反光光澤 */
         .card::before {
             content: ''; position: absolute; top: 0; left: -50%; width: 200%; height: 100%;
             background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
@@ -112,13 +110,27 @@
         @keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
 
         /* 已剪卡樣式 */
-        .card.cancelled { filter: grayscale(80%) sepia(20%) brightness(0.9); opacity: 0.85; }
+        .card.cancelled {
+            filter: grayscale(80%) sepia(20%) brightness(0.9);
+            opacity: 0.85;
+        }
         .cancelled-stamp {
-            position: absolute; top: 25px; right: 15px; border: 3px solid rgba(255, 71, 87, 0.9);
-            color: rgba(255, 71, 87, 0.9); font-size: 16px; font-weight: 900; padding: 6px 12px;
-            transform: rotate(15deg); border-radius: 8px; z-index: 10;
-            background: rgba(255,255,255,0.85); pointer-events: none; letter-spacing: 2px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-shadow: none;
+            position: absolute;
+            top: 25px;
+            right: 15px;
+            border: 3px solid rgba(255, 71, 87, 0.9);
+            color: rgba(255, 71, 87, 0.9);
+            font-size: 16px;
+            font-weight: 900;
+            padding: 6px 12px;
+            transform: rotate(15deg);
+            border-radius: 8px;
+            z-index: 10;
+            background: rgba(255,255,255,0.85);
+            pointer-events: none;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            text-shadow: none;
         }
 
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
@@ -167,21 +179,31 @@
         
         .bank-default { background: linear-gradient(135deg, #7F8FA6, #2F3640); }
 
-        /* 模態框 */
+        /* 模態框 (新增/編輯/設定) - 圓潤懸浮感 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fdfdfd; z-index: 1000; overflow-y: auto; padding-bottom: 300px; animation: fadeIn 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         .modal-header { padding: 18px 20px; background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: white; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 0 0 20px 20px; margin-bottom: 10px; }
         .form-group { padding: 12px 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #34495e; }
         
+        /* 回饋級距區塊 */
         .reward-section { background: #fdfefe; padding: 16px; border-radius: 16px; border: 1px solid #dcdde1; margin: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .tier-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
         .tier-row input { padding: 8px !important; font-size: 14px !important; }
 
-        .popup-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.7); z-index: 1200; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px); }
-        .popup-content { background: white; width: 100%; max-width: 400px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: bounceUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; max-height: 90vh; }
+        /* 專屬小彈窗 (用於備註與記帳) */
+        .popup-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
+            background: rgba(44, 62, 80, 0.7); z-index: 1200; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px);
+        }
+        .popup-content {
+            background: white; width: 100%; max-width: 400px; border-radius: 24px; overflow: hidden; 
+            box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: bounceUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            display: flex; flex-direction: column; max-height: 90vh;
+        }
         @keyframes bounceUp { from { transform: translateY(40px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
+        /* 明細清單樣式 */
         .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         .expense-item:last-child { border-bottom: none; }
         .expense-info { flex: 1; }
@@ -190,22 +212,34 @@
         .expense-amt { font-size: 16px; font-weight: bold; color: var(--primary-dark); margin-right: 10px; }
         .expense-actions button { padding: 4px 8px; font-size: 12px; margin-left: 5px; box-shadow: none; }
 
-        /* 虛擬鍵盤 */
+        /* 自訂螢幕數字鍵盤 - 實體計算機手感 */
         #virtual-keypad { 
             position: fixed; bottom: 0; left: 0; width: 100%; background: #e2e6eb; padding: 20px 15px 30px 15px; 
             display: none; grid-template-columns: repeat(3, 1fr); gap: 12px; z-index: 1500; 
             box-shadow: 0 -10px 30px rgba(0,0,0,0.15); border-radius: 24px 24px 0 0; border-top: 1px solid #fff;
         }
-        .key { background: #ffffff; border: none; padding: 18px 10px; font-size: 26px; font-weight: bold; color: #2c3e50; border-radius: 14px; box-shadow: 0 5px 0 #b2bec3, 0 6px 10px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.1s ease; transform: translateY(0); }
+        .key { 
+            background: #ffffff; border: none; padding: 18px 10px; font-size: 26px; font-weight: bold; color: #2c3e50;
+            border-radius: 14px; box-shadow: 0 5px 0 #b2bec3, 0 6px 10px rgba(0,0,0,0.1); 
+            cursor: pointer; transition: all 0.1s ease; transform: translateY(0);
+        }
         .key:active { box-shadow: 0 0px 0 #b2bec3, 0 2px 4px rgba(0,0,0,0.1) !important; transform: translateY(5px); background: #f1f2f6; }
+        
         .key-action { background: #7f8fa6; color: white; box-shadow: 0 5px 0 #576574, 0 6px 10px rgba(0,0,0,0.1); font-size: 18px; }
         .key-action:active { background: #718093; box-shadow: 0 0px 0 #576574 !important; transform: translateY(5px); }
+        
         .key-close { background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: white; grid-column: span 3; box-shadow: 0 5px 0 #005f8d, 0 6px 10px rgba(0,0,0,0.15); font-size: 18px; letter-spacing: 2px; }
         .key-close:active { box-shadow: 0 0px 0 #005f8d !important; transform: translateY(5px); }
 
-        .expiry-btn { background: #ffffff; border: 2px solid #d1d8e0; padding: 10px 0; font-size: 15px; font-weight: bold; color: #7f8c8d; border-radius: 10px; box-shadow: 0 3px 0 #b2bec3; cursor: pointer; transition: all 0.1s ease; text-align: center; }
+        /* 到期日自訂選擇器按鈕 */
+        .expiry-btn {
+            background: #ffffff; border: 2px solid #d1d8e0; padding: 10px 0; font-size: 15px; font-weight: bold; color: #7f8c8d;
+            border-radius: 10px; box-shadow: 0 3px 0 #b2bec3; cursor: pointer; transition: all 0.1s ease; text-align: center;
+        }
         .expiry-btn:active { box-shadow: 0 0px 0 #b2bec3 !important; transform: translateY(3px); background: #f1f2f6; }
-        .expiry-btn.active { background: #eef7fc; border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary); }
+        .expiry-btn.active {
+            background: #eef7fc; border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary);
+        }
         .expiry-btn.active:active { box-shadow: 0 0px 0 var(--primary) !important; transform: translateY(3px); }
         
     </style>
@@ -233,9 +267,9 @@
         </div>
     </div>
 
-    <div id="card-container" class="list-view"></div>
+    <div id="card-container" class="list-view">
+        </div>
 
-    <!-- 程式設定模態框 -->
     <div id="settings-modal" class="modal">
         <div class="modal-header">
             <h3 style="margin:0;">程式設定</h3>
@@ -259,14 +293,14 @@
         </div>
     </div>
 
-    <!-- 備註與記帳彈窗 -->
     <div id="view-note-modal" class="popup-modal">
         <div class="popup-content">
             <div class="modal-header" style="padding: 15px 20px; border-radius: 0; flex-shrink: 0;">
                 <h4 style="margin:0; font-size:18px;" id="view-note-title">卡片備註</h4>
                 <button class="btn-danger" style="border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="closePopupModal('view-note-modal')">✖</button>
             </div>
-            <div id="view-note-content" style="padding: 25px; color: #2c3e50; line-height: 1.6; white-space: pre-wrap; word-break: break-all; overflow-y: auto; font-size: 15px;"></div>
+            <div id="view-note-content" style="padding: 25px; color: #2c3e50; line-height: 1.6; white-space: pre-wrap; word-break: break-all; overflow-y: auto; font-size: 15px;">
+            </div>
         </div>
     </div>
 
@@ -289,13 +323,14 @@
                 <input type="text" id="expense-note" placeholder="新增備註 (選填)" style="width:100%; padding:10px; font-size:14px; background:white;">
             </div>
             <div style="padding: 10px 20px; background: #f4f6f8; font-size:13px; font-weight:bold; color:#7f8c8d; display:flex; justify-content:space-between;">
-                <span>本期明細</span><span id="expense-cycle-display" style="color:var(--primary-dark);"></span>
+                <span>本期明細</span>
+                <span id="expense-cycle-display" style="color:var(--primary-dark);"></span>
             </div>
-            <div id="expense-list-container" style="padding: 0 10px 20px 10px; overflow-y: auto; flex-grow: 1;"></div>
+            <div id="expense-list-container" style="padding: 0 10px 20px 10px; overflow-y: auto; flex-grow: 1;">
+                </div>
         </div>
     </div>
 
-    <!-- 到期日選擇器 -->
     <div id="expiry-modal" class="popup-modal">
         <div class="popup-content" style="max-width: 360px;">
             <div class="modal-header" style="padding: 15px 20px; border-radius: 0; flex-shrink: 0;">
@@ -308,7 +343,8 @@
                         <div style="display:flex; justify-content:center; align-items:center; margin-bottom:10px; height: 26px;">
                             <label style="font-weight:bold; color:#34495e; margin:0;">月份 (MM)</label>
                         </div>
-                        <div id="expiry-month-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
+                        <div id="expiry-month-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            </div>
                     </div>
                     <div style="flex: 1;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; height: 26px;">
@@ -316,7 +352,8 @@
                             <label style="text-align:center; font-weight:bold; color:#34495e; margin:0;">年份 (YY)</label>
                             <button class="btn-outline" style="padding: 2px 8px; font-size: 14px; box-shadow:none; border-radius: 6px;" onclick="changeYearPage(1)">▶</button>
                         </div>
-                        <div id="expiry-year-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
+                        <div id="expiry-year-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
+                            </div>
                     </div>
                 </div>
                 <button class="btn-primary" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 16px; box-shadow: 0 4px 0 #005f8d;" onclick="confirmExpiry()">✅ 確定</button>
@@ -324,7 +361,6 @@
         </div>
     </div>
 
-    <!-- 表單模態框 -->
     <div id="form-modal" class="modal">
         <div class="modal-header">
             <h3 id="modal-title" style="margin:0;">新增卡片</h3>
@@ -364,8 +400,8 @@
         <div class="form-group">
             <label>信用卡號 (16碼)</label>
             <div style="position: relative; display: flex; align-items: center;">
-                <input type="text" id="card-no" oninput="handleInput(this)" placeholder="輸入卡號" style="width: 100%; padding-right: 40px; letter-spacing: 2px; font-family: monospace; font-size: 18px;">
-                <span onclick="openKeypad('card-no')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
+                <input type="text" id="card-no" oninput="handleInput(this)" placeholder="輸入卡號 (可按右側 ⌨️ 開啟數字鍵盤)" style="width: 100%; padding-right: 40px; letter-spacing: 2px; font-family: monospace; font-size: 18px;">
+                <span onclick="openKeypad('card-no')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
             </div>
         </div>
         <div class="form-group flex-row" style="padding: 0;">
@@ -373,21 +409,22 @@
                 <label>到期日 (MMYY)</label>
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="card-expiry" oninput="handleInput(this)" placeholder="例如: 1228" style="width: 100%; padding-right: 75px; font-family: monospace; font-size: 18px;">
-                    <span onclick="openKeypad('card-expiry')" style="position: absolute; right: 42px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
-                    <span onclick="openExpiryPicker()" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">📅</span>
+                    <span onclick="openKeypad('card-expiry')" style="position: absolute; right: 42px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+                    <span onclick="openExpiryPicker()" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟日期選擇器">📅</span>
                 </div>
             </div>
             <div style="flex:1; padding: 10px 20px 10px 0;">
                 <label>驗證碼 (3碼)</label>
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="card-cvv" oninput="handleInput(this)" placeholder="例如: 123" style="width: 100%; padding-right: 40px; font-family: monospace; font-size: 18px;">
-                    <span onclick="openKeypad('card-cvv')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
+                    <span onclick="openKeypad('card-cvv')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
                 </div>
             </div>
         </div>
         
         <div class="form-group reward-section">
             <label style="color: var(--primary-dark); font-size: 15px;">💰 結帳與回饋規則</label>
+            
             <div style="display:flex; gap:10px; margin-bottom:12px; background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                 <div style="flex:1;">
                     <label style="font-size:12px; color:#7f8c8d; font-weight:bold;">回饋結算帳單月</label>
@@ -401,6 +438,7 @@
                     <input type="number" id="card-billing-day" min="1" max="31" placeholder="例如: 15" style="padding:8px; font-size:13px;">
                 </div>
             </div>
+
             <span style="font-size: 12px; color: #7f8c8d; display:block; margin-bottom:8px; font-weight:bold;">設定階梯式回饋級距</span>
             <div id="tiers-container"></div>
             <button class="btn-outline" style="width: 100%; margin-top: 10px; padding: 10px; border-style: dashed; box-shadow:none; background:transparent;" onclick="addTier(event)">➕ 新增回饋級距</button>
@@ -420,7 +458,7 @@
                 <label>票證號碼 (16碼)</label>
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="card-eticket" oninput="handleInput(this)" placeholder="若無可留白" style="width: 100%; padding-right: 40px; font-family: monospace;">
-                    <span onclick="openKeypad('card-eticket')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
+                    <span onclick="openKeypad('card-eticket')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
                 </div>
             </div>
         </div>
@@ -435,7 +473,6 @@
         </div>
     </div>
 
-    <!-- 自訂螢幕數字鍵盤 -->
     <div id="virtual-keypad">
         <button class="key" onclick="keyPress('1')">1</button>
         <button class="key" onclick="keyPress('2')">2</button>
@@ -453,6 +490,7 @@
     </div>
 
 <script>
+    // 整合所有台灣各大銀行與網銀
     const BANKS = [
         "中信", "國泰", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山",
         "彰化", "元大", "新光", "凱基", "第一", "星展", 
@@ -466,11 +504,13 @@
     let tempSelectedMonth = '';
     let tempSelectedYear = '';
     let currentYearPageStart = 0; 
+    
+    // PWA 安裝變數與偵測
     let deferredPrompt = null;
-
     const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
     const isInStandaloneMode = () => ('standalone' in window.navigator && window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
 
+    // Service Worker 註冊 (PWA 必要條件)
     if ('serviceWorker' in navigator) {
         const swCode = `
             self.addEventListener('install', (e) => { self.skipWaiting(); });
@@ -482,13 +522,14 @@
         navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
     }
 
-    // Android/Chrome 攔截原生安裝提示
+    // 攔截 Chrome 的原生安裝提示
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
+        document.getElementById('install-btn').style.display = 'inline-block';
     });
 
-    // 介面讀取完畢後，強制顯示安裝按鈕 (除非已經是 APP 模式)
+    // 頁面載入時，強制顯示按鈕給 iOS 或是被阻擋的 Chrome 用戶
     window.addEventListener('DOMContentLoaded', () => {
         if (!isInStandaloneMode()) {
             document.getElementById('install-btn').style.display = 'inline-block';
@@ -497,13 +538,12 @@
 
     window.addEventListener('appinstalled', () => {
         document.getElementById('install-btn').style.display = 'none';
-        alert('🎉 應用程式安裝成功！您可以在桌面找到它了。');
     });
 
     // 執行安裝流程
     async function installPWA() {
         if (deferredPrompt) {
-            // 如果環境允許，Android / Chrome 會自動彈出安裝視窗
+            // Android / Chrome 支援自動彈出
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             if (outcome === 'accepted') {
@@ -511,16 +551,18 @@
                 document.getElementById('install-btn').style.display = 'none';
             }
         } else {
-            // 如果是在內嵌視窗 (Preview) 或是 iOS，瀏覽器基於安全會阻擋自動安裝，改跳教學
-            let msg = '⚠️ 無法自動安裝：因為您目前正在「預覽畫面(內嵌網頁)」中，瀏覽器基於安全限制阻擋了自動安裝。\n\n';
-            msg += '💡 如何才能順利安裝？\n';
-            msg += '您需要將這段 HTML 程式碼下載，並放在真實的網頁伺服器上 (例如 GitHub Pages 或 Zeabur)。\n\n';
-            msg += '然後用手機的 Chrome 打開那個專屬網址，底下就會自動跳出「將應用程式加到主畫面」的提示了！';
-            
+            // 不支援自動彈出的環境，跳出手動教學
+            let msg = '💡 如何將卡夾安裝到手機桌面：\n\n';
+            if (isIos()) {
+                msg += '🍎 iOS (Safari 瀏覽器)：\n1. 點選瀏覽器底部的「分享」圖示 (向上箭頭的方塊)\n2. 往下滑動並選擇「加入主畫面」\n3. 點擊右上角的「新增」';
+            } else {
+                msg += '🤖 Android (Chrome 瀏覽器)：\n1. 點選右上角的「⋮」選單\n2. 選擇「加到主畫面」或「安裝應用程式」\n\n(提示：若找不到選項，請確認 GitHub 目錄下是否有上傳 icon.png 圖片)';
+            }
             alert(msg);
         }
     }
 
+    // 初始化與資料遷移
     window.onload = () => {
         const bankSelect = document.getElementById('card-bank');
         const filterBank = document.getElementById('filter-bank');
@@ -547,6 +589,7 @@
         renderCards();
     };
 
+    // 工具函式
     const padNum = (n) => n.toString().padStart(2, '0');
     const formatMoney = (num) => Number(num).toLocaleString('en-US');
     const formatCC = (num) => num ? num.replace(/(.{4})/g, '$1-').replace(/-$/, '') : '';
