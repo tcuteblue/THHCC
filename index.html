@@ -109,7 +109,7 @@
         .copy-btn:active { transform: translateY(2px); box-shadow: 0 0 2px rgba(0,0,0,0.1); }
         .action-row { display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 15px; gap: 8px; }
 
-        /* 16 家銀行 CI 顏色 */
+        /* 銀行 CI 顏色 */
         .bank-中信 { background: linear-gradient(135deg, #00B4B5, #005051); }
         .bank-國泰 { background: linear-gradient(135deg, #00B859, #8B9A00); }
         .bank-台新 { background: linear-gradient(135deg, #FF4757, #C0392B); }
@@ -126,6 +126,19 @@
         .bank-凱基 { background: linear-gradient(135deg, #FF9F43, #B35800); }
         .bank-第一 { background: linear-gradient(135deg, #00875A, #003020); }
         .bank-星展 { background: linear-gradient(135deg, #FF3F4A, #111111); }
+        
+        /* 新增銀行 CI 顏色設定 */
+        .bank-LINEBank { background: linear-gradient(135deg, #2ECC71, #186A3B); }
+        .bank-匯豐 { background: linear-gradient(135deg, #E74C3C, #922B21); }
+        .bank-台銀 { background: linear-gradient(135deg, #8E44AD, #4A235A); }
+        .bank-土銀 { background: linear-gradient(135deg, #27AE60, #145A32); }
+        .bank-合庫 { background: linear-gradient(135deg, #2ECC71, #1D8348); }
+        .bank-兆豐 { background: linear-gradient(135deg, #E74C3C, #78281F); }
+        .bank-台企銀 { background: linear-gradient(135deg, #F39C12, #935116); }
+        .bank-上海 { background: linear-gradient(135deg, #E62E04, #871900); }
+        .bank-渣打 { background: linear-gradient(135deg, #3498DB, #154360); }
+        .bank-將來 { background: linear-gradient(135deg, #F1C40F, #9A7D0A); }
+        
         .bank-default { background: linear-gradient(135deg, #7F8FA6, #2F3640); }
 
         /* 模態框 (新增/編輯/設定) - 圓潤懸浮感 */
@@ -447,8 +460,13 @@
     </div>
 
 <script>
-    // 銀行列表簡化
-    const BANKS = ["中信", "國泰", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山", "彰化", "元大", "新光", "凱基", "第一", "星展"];
+    // 整合所有台灣各大銀行與網銀 (調整排序與內容)
+    const BANKS = [
+        "中信", "國泰", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山",
+        "彰化", "元大", "新光", "凱基", "第一", "星展", 
+        "LINEBank", "匯豐", "台銀", "土銀", "合庫", "兆豐", "台企銀", "上海", "渣打", 
+        "王道", "將來", "高雄", "台中", "安泰", "板信", "陽信", "華泰"
+    ];
     let cards = JSON.parse(localStorage.getItem('creditCards')) || [];
     let isListView = true;
     let activeInputId = null;
