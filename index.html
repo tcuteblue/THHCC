@@ -266,10 +266,15 @@
         <div class="flex-row" style="margin-bottom:0;">
             <button class="btn-primary" style="flex: 2;" onclick="openModal()">➕ 新增卡片</button>
             
-            <!-- 動態安裝按鈕 -->
-            <button id="install-btn" class="btn-install" style="flex: 1; display: none;" onclick="installPWA()">📱 安裝</button>
+            <!-- 安裝按鈕：預設顯示，由 JS 判斷如果是 App 模式才隱藏 -->
+            <button id="install-btn" class="btn-install" style="flex: 1;" onclick="installPWA()">📱 安裝</button>
             
             <button class="btn-outline" style="flex: 1; border-width: 1px;" onclick="openSettings()">⚙️ 設定</button>
+        </div>
+        
+        <!-- 卡片數量統計顯示 -->
+        <div id="card-count-display" style="text-align: right; margin-top: 10px; font-size: 13px; font-weight: bold; color: #7f8fa6;">
+            載入中...
         </div>
     </div>
 
@@ -549,44 +554,37 @@
         navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
     }
 
-    // Android/Chrome 攔截原生安裝提示
+    // 監聽 Android/Chrome 原生安裝提示
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        // 只有在未安裝的網頁模式下才顯示安裝按鈕
-        if (!isInStandaloneMode()) {
-            document.getElementById('install-btn').style.display = 'inline-block';
-        }
     });
 
     window.addEventListener('appinstalled', () => {
         document.getElementById('install-btn').style.display = 'none';
     });
 
-    // 針對 iOS 顯示按鈕 (因為 iOS Safari 不支援自動觸發 beforeinstallprompt)
+    // 無論如何先顯示安裝按鈕，除非已經是在 APP 模式中執行
     window.addEventListener('DOMContentLoaded', () => {
-        if (isIos() && !isInStandaloneMode()) {
-            document.getElementById('install-btn').style.display = 'inline-block';
+        if (isInStandaloneMode()) {
+            document.getElementById('install-btn').style.display = 'none';
         }
     });
 
     // 執行安裝流程
     async function installPWA() {
-        // 如果是 iOS，跳出自訂安裝指示
-        if (isIos()) {
-            alert('🍎 蘋果 iOS 安裝指示：\n\n1. 請點選瀏覽器底部的「分享」圖示 (有向上箭頭的方塊)\n2. 往下滑動並點選「加入主畫面」\n3. 點擊右上角的「新增」即可將卡夾安裝到手機桌面！');
-            return;
-        }
-        
-        // 如果是 Android / Chrome，觸發原生安裝提示
         if (deferredPrompt) {
+            // Android / Chrome 觸發原生安裝提示
             deferredPrompt.prompt();
             await deferredPrompt.userChoice;
             deferredPrompt = null;
             document.getElementById('install-btn').style.display = 'none';
         } else {
-            // 防呆提示
-            alert('💡 您的裝置可能已安裝此程式，或者請手動透過瀏覽器選單選擇「安裝應用程式」或「加到主畫面」。');
+            // 蘋果 iOS 或是瀏覽器不支援自動 prompt，彈出教學引導
+            const msg = isIos() 
+                ? '🍎 蘋果 iOS 安裝教學：\n\n1. 請點選瀏覽器底部的「分享」圖示 (有向上箭頭的方塊)\n2. 往下滑動並點選「加入主畫面」\n3. 點擊右上角的「新增」即可將卡夾安裝到手機桌面！'
+                : '🤖 桌面 APP 安裝教學：\n\n【Android / 電腦版 Chrome】\n請點擊瀏覽器右上角的「設定 (三個點)」圖示 ➔ 選擇「加到主畫面」或「安裝應用程式」。\n\n這樣以後就可以直接從桌面快速開啟囉！';
+            alert(msg);
         }
     }
 
@@ -703,15 +701,25 @@
         return { reward: Math.round(reward), maxLimit: sorted[sorted.length - 1].limit };
     }
 
-    // 渲染卡片
+    // 渲染卡片與統計數量
     function renderCards() {
         const container = document.getElementById('card-container');
         const filterB = document.getElementById('filter-bank').value;
         const filterH = document.getElementById('filter-holder').value;
+        const countDisplay = document.getElementById('card-count-display');
         container.innerHTML = '';
 
         let filtered = cards.filter(c => (filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH));
         
+        // 更新卡片數量統計顯示
+        if (countDisplay) {
+            if (filterB === 'All' && filterH === 'All') {
+                countDisplay.innerText = `總共 ${filtered.length} 張卡片`;
+            } else {
+                countDisplay.innerText = `篩選顯示 ${filtered.length} 張 / 總共 ${cards.length} 張`;
+            }
+        }
+
         // 排序：將「已剪卡」狀態的排到陣列最下方
         filtered.sort((a, b) => {
             const statusA = a.status || 'active';
@@ -1251,4 +1259,3 @@
 </html>
 
 
-```
