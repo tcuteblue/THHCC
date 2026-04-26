@@ -41,6 +41,9 @@
             outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.2), inset 0 2px 4px rgba(0,0,0,0.02); background: white;
         }
         
+        /* 虛擬鍵盤啟動時的輸入框高亮 */
+        .keypad-active { background: #eef7fc !important; border-color: #b9d7ea !important; box-shadow: 0 0 0 3px rgba(0, 159, 227, 0.2) !important; }
+
         /* 活潑立體按鈕 */
         button { 
             padding: 10px 14px; border: none; border-radius: 12px; cursor: pointer; font-weight: bold; font-size: 14px; 
@@ -132,9 +135,6 @@
         .form-group { padding: 12px 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #34495e; }
         
-        /* inputmode="none" 提示使用虛擬鍵盤同時支援複製貼上 */
-        .form-group input[inputmode="none"] { background: #eef7fc; cursor: text; border-color: #b9d7ea; }
-
         /* 回饋級距區塊 */
         .reward-section { background: #fdfefe; padding: 16px; border-radius: 16px; border: 1px solid #dcdde1; margin: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .tier-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
@@ -270,7 +270,10 @@
                 <input type="hidden" id="expense-card-id">
                 <input type="hidden" id="editing-expense-id">
                 <div style="display:flex; gap:10px; align-items:center; margin-bottom:10px;">
-                    <input type="text" id="expense-amount" inputmode="none" onclick="openKeypad('expense-amount')" oninput="handleInput(this)" placeholder="輸入金額" style="flex:2; padding:12px; font-size:20px; font-weight:bold; color:var(--primary-dark); text-align:right;">
+                    <div style="flex:2; position: relative; display: flex; align-items: center;">
+                        <input type="text" id="expense-amount" oninput="handleInput(this)" placeholder="輸入金額" style="width: 100%; padding:12px 12px 12px 45px; font-size:20px; font-weight:bold; color:var(--primary-dark); text-align:right;">
+                        <span onclick="openKeypad('expense-amount')" style="position: absolute; left: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+                    </div>
                     <button class="btn-primary" id="btn-save-expense" style="flex:1; padding:12px; box-shadow: 0 3px 0 #005f8d;" onclick="saveExpense()">💾 儲存</button>
                 </div>
                 <input type="text" id="expense-note" placeholder="新增備註 (選填)" style="width:100%; padding:10px; font-size:14px; background:white;">
@@ -348,20 +351,27 @@
         </div>
         <div class="form-group">
             <label>信用卡號 (16碼)</label>
-            <input type="text" id="card-no" inputmode="none" onclick="openKeypad('card-no')" oninput="handleInput(this)" placeholder="點擊使用鍵盤輸入，或長按貼上" style="letter-spacing: 2px; font-family: monospace; font-size: 18px;">
+            <div style="position: relative; display: flex; align-items: center;">
+                <input type="text" id="card-no" oninput="handleInput(this)" placeholder="輸入卡號 (可按右側 ⌨️ 開啟數字鍵盤)" style="width: 100%; padding-right: 40px; letter-spacing: 2px; font-family: monospace; font-size: 18px;">
+                <span onclick="openKeypad('card-no')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+            </div>
         </div>
         <div class="form-group flex-row" style="padding: 0;">
             <div style="flex:1; padding: 10px 20px 10px 20px;">
                 <label>到期日 (MMYY)</label>
                 <div style="position: relative; display: flex; align-items: center;">
-                    <input type="text" id="card-expiry" inputmode="none" onclick="openKeypad('card-expiry')" oninput="handleInput(this)" placeholder="例如: 1228" style="width: 100%; padding-right: 40px; font-family: monospace; font-size: 18px;">
+                    <input type="text" id="card-expiry" oninput="handleInput(this)" placeholder="例如: 1228" style="width: 100%; padding-right: 75px; font-family: monospace; font-size: 18px;">
                     <!-- 自訂到期日選擇器按鈕 -->
+                    <span onclick="openKeypad('card-expiry')" style="position: absolute; right: 42px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
                     <span onclick="openExpiryPicker()" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟日期選擇器">📅</span>
                 </div>
             </div>
             <div style="flex:1; padding: 10px 20px 10px 0;">
                 <label>驗證碼 (3碼)</label>
-                <input type="text" id="card-cvv" inputmode="none" onclick="openKeypad('card-cvv')" oninput="handleInput(this)" placeholder="例如: 123" style="font-family: monospace; font-size: 18px;">
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="text" id="card-cvv" oninput="handleInput(this)" placeholder="例如: 123" style="width: 100%; padding-right: 40px; font-family: monospace; font-size: 18px;">
+                    <span onclick="openKeypad('card-cvv')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+                </div>
             </div>
         </div>
         
@@ -402,7 +412,10 @@
             </div>
             <div style="flex:2; padding: 10px 20px 10px 0;">
                 <label>票證號碼 (16碼)</label>
-                <input type="text" id="card-eticket" inputmode="none" onclick="openKeypad('card-eticket')" oninput="handleInput(this)" placeholder="若無可留白" style="font-family: monospace;">
+                <div style="position: relative; display: flex; align-items: center;">
+                    <input type="text" id="card-eticket" oninput="handleInput(this)" placeholder="若無可留白" style="width: 100%; padding-right: 40px; font-family: monospace;">
+                    <span onclick="openKeypad('card-eticket')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+                </div>
             </div>
         </div>
 
@@ -541,7 +554,7 @@
         return index > -1 ? { card: cards[index], index } : null;
     }
 
-    // 共用複製邏輯 (整合原本的 copyText 與 copyAll)
+    // 共用複製邏輯
     function performCopy(text, event) {
         if(event) event.stopPropagation();
         const tempTextArea = document.createElement("textarea");
@@ -691,7 +704,7 @@
         }
     }
 
-    // 彈窗與輸入處理
+    // 彈窗與一般輸入處理
     function closePopupModal(modalId) { document.getElementById(modalId).style.display = 'none'; closeKeypad(); }
 
     function handleInput(el) {
@@ -1030,21 +1043,64 @@
         reader.readAsText(file);
     }
 
-    // 鍵盤邏輯
+    // 手動喚起自訂鍵盤
+    function openKeypad(inputId) {
+        activeInputId = inputId;
+        document.getElementById('virtual-keypad').style.display = 'grid';
+        const el = document.getElementById(inputId);
+        if(el) {
+            // 設定 inputmode="none" 避免手機在叫出虛擬鍵盤時又彈出原生鍵盤
+            el.setAttribute('inputmode', 'none'); 
+            el.classList.add('keypad-active');
+            el.focus();
+            setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
+        }
+    }
+    
+    // 收起鍵盤，還原為一般原生輸入狀態
+    function closeKeypad() { 
+        if (activeInputId) {
+            const el = document.getElementById(activeInputId);
+            if(el) {
+                el.removeAttribute('inputmode');
+                el.classList.remove('keypad-active');
+            }
+        }
+        activeInputId = null; 
+        document.getElementById('virtual-keypad').style.display = 'none'; 
+    }
+
+    // 自動偵測當鍵盤開啟時，透過 TAB 或點擊切換焦點的情形
+    document.addEventListener('focusin', e => {
+        if (activeInputId && e.target.tagName === 'INPUT') {
+            const supportedIds = ['card-no', 'card-expiry', 'card-cvv', 'card-eticket', 'expense-amount'];
+            if (supportedIds.includes(e.target.id)) {
+                if (activeInputId !== e.target.id) {
+                    const oldEl = document.getElementById(activeInputId);
+                    if (oldEl) {
+                        oldEl.removeAttribute('inputmode');
+                        oldEl.classList.remove('keypad-active');
+                    }
+                    activeInputId = e.target.id;
+                    e.target.setAttribute('inputmode', 'none');
+                    e.target.classList.add('keypad-active');
+                }
+            } else {
+                closeKeypad();
+            }
+        }
+    });
+
+    // 鍵盤與實體按鍵相容邏輯
     document.addEventListener('keydown', e => {
+        // 只有在虛擬鍵盤「打開」的情況下，才攔截數字鍵
         if (!activeInputId) return; 
+        
         if (/^[0-9]$/.test(e.key)) { keyPress(e.key); e.preventDefault(); } 
         else if (e.key === 'Backspace') { keyPress('del'); e.preventDefault(); } 
         else if (e.key === 'Delete') { keyPress('clear'); e.preventDefault(); } 
         else if (e.key === 'Escape' || e.key === 'Enter') { closeKeypad(); e.preventDefault(); }
     });
-
-    function openKeypad(inputId) {
-        activeInputId = inputId;
-        document.getElementById('virtual-keypad').style.display = 'grid';
-        setTimeout(() => document.getElementById(inputId)?.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-    }
-    function closeKeypad() { activeInputId = null; document.getElementById('virtual-keypad').style.display = 'none'; }
 
     function keyPress(val) {
         if (!activeInputId) return;
