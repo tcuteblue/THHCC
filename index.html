@@ -32,6 +32,14 @@
         .controls { padding: 15px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; border-radius: 0 0 20px 20px; border-bottom: 1px solid #eee; }
         .flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
         
+        /* 安裝 APP 專屬橫幅 */
+        .install-banner {
+            display: flex; background: linear-gradient(135deg, #00b894, #00cec9); padding: 12px 15px; color: white; 
+            border-radius: 15px; margin-bottom: 15px; align-items: center; justify-content: space-between; 
+            box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3); cursor: pointer; transition: all 0.15s ease;
+        }
+        .install-banner:active { transform: translateY(3px); box-shadow: 0 2px 6px rgba(0, 184, 148, 0.2); }
+
         /* 輸入框與選單 - 內嵌立體感 */
         select, input[type="text"], input[type="number"], input[type="file"], textarea { 
             flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; 
@@ -54,10 +62,6 @@
         .btn-primary { 
             background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: white; 
             box-shadow: 0 4px 0 #006b9e, 0 5px 10px rgba(0, 122, 181, 0.3);
-        }
-        .btn-install {
-            background: linear-gradient(135deg, #00b894, #00cec9); color: white;
-            box-shadow: 0 4px 0 #019074, 0 5px 10px rgba(0, 184, 148, 0.3);
         }
         .btn-outline { 
             background: white; border: 2px solid var(--primary); color: var(--primary-dark); 
@@ -252,6 +256,19 @@
     <header id="backup-status">✅ 最新自動備份：尚未備份</header>
 
     <div class="controls">
+        
+        <!-- 獨立的安裝 APP 提示區塊 -->
+        <div id="install-banner" class="install-banner" onclick="installPWA()">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 28px; line-height: 1;">📱</span>
+                <div style="display: flex; flex-direction: column; text-align: left;">
+                    <span style="font-size: 15px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">將網頁安裝成專屬 APP</span>
+                    <span style="font-size: 12px; opacity: 0.95;">加到手機桌面，一鍵開啟更順暢</span>
+                </div>
+            </div>
+            <div style="background: white; color: #009074; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">立即安裝</div>
+        </div>
+
         <div class="flex-row">
             <select id="filter-bank" onchange="renderCards()">
                 <option value="All">全部銀行</option>
@@ -265,10 +282,6 @@
         </div>
         <div class="flex-row" style="margin-bottom:0;">
             <button class="btn-primary" style="flex: 2;" onclick="openModal()">➕ 新增卡片</button>
-            
-            <!-- 安裝按鈕：預設顯示，由 JS 判斷如果是 App 模式才隱藏 -->
-            <button id="install-btn" class="btn-install" style="flex: 1;" onclick="installPWA()">📱 安裝</button>
-            
             <button class="btn-outline" style="flex: 1; border-width: 1px;" onclick="openSettings()">⚙️ 設定</button>
         </div>
         
@@ -561,13 +574,13 @@
     });
 
     window.addEventListener('appinstalled', () => {
-        document.getElementById('install-btn').style.display = 'none';
+        document.getElementById('install-banner').style.display = 'none';
     });
 
     // 無論如何先顯示安裝按鈕，除非已經是在 APP 模式中執行
     window.addEventListener('DOMContentLoaded', () => {
         if (isInStandaloneMode()) {
-            document.getElementById('install-btn').style.display = 'none';
+            document.getElementById('install-banner').style.display = 'none';
         }
     });
 
@@ -578,7 +591,7 @@
             deferredPrompt.prompt();
             await deferredPrompt.userChoice;
             deferredPrompt = null;
-            document.getElementById('install-btn').style.display = 'none';
+            document.getElementById('install-banner').style.display = 'none';
         } else {
             // 蘋果 iOS 或是瀏覽器不支援自動 prompt，彈出教學引導
             const msg = isIos() 
