@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -524,13 +525,19 @@
     let activeInputId = null;
     let currentEditingTiers = [];
     
-    // 自訂到期日選擇器變數
-    let tempSelectedMonth = '';
-    let tempSelectedYear = '';
-    let currentYearPageStart = 0; 
-    
-    // PWA 安裝變數
+    // PWA 安裝變數與偵測
     let deferredPrompt = null;
+
+    // 偵測是否為蘋果 iOS 設備
+    const isIos = () => {
+        const userAgent = window.navigator.userAgent.toLowerCase();
+        return /iphone|ipad|ipod/.test(userAgent);
+    };
+
+    // 偵測是否已經是以 APP (Standalone) 模式執行
+    const isInStandaloneMode = () => {
+        return ('standalone' in window.navigator && window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
+    };
 
     if ('serviceWorker' in navigator) {
         const swCode = `
@@ -543,24 +550,46 @@
         navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
     }
 
+    // Android/Chrome 攔截原生安裝提示
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
-        document.getElementById('install-btn').style.display = 'inline-block';
+        // 只有在未安裝的網頁模式下才顯示安裝按鈕
+        if (!isInStandaloneMode()) {
+            document.getElementById('install-btn').style.display = 'inline-block';
+        }
     });
 
+    window.addEventListener('appinstalled', () => {
+        document.getElementById('install-btn').style.display = 'none';
+    });
+
+    // 針對 iOS 顯示按鈕 (因為 iOS Safari 不支援自動觸發 beforeinstallprompt)
+    window.addEventListener('DOMContentLoaded', () => {
+        if (isIos() && !isInStandaloneMode()) {
+            document.getElementById('install-btn').style.display = 'inline-block';
+        }
+    });
+
+    // 執行安裝流程
     async function installPWA() {
+        // 如果是 iOS，跳出自訂安裝指示
+        if (isIos()) {
+            alert('🍎 蘋果 iOS 安裝指示：\n\n1. 請點選瀏覽器底部的「分享」圖示 (有向上箭頭的方塊)\n2. 往下滑動並點選「加入主畫面」\n3. 點擊右上角的「新增」即可將卡夾安裝到手機桌面！');
+            return;
+        }
+        
+        // 如果是 Android / Chrome，觸發原生安裝提示
         if (deferredPrompt) {
             deferredPrompt.prompt();
             await deferredPrompt.userChoice;
             deferredPrompt = null;
             document.getElementById('install-btn').style.display = 'none';
+        } else {
+            // 防呆提示
+            alert('💡 您的裝置可能已安裝此程式，或者請手動透過瀏覽器選單選擇「安裝應用程式」或「加到主畫面」。');
         }
     }
-
-    window.addEventListener('appinstalled', () => {
-        document.getElementById('install-btn').style.display = 'none';
-    });
 
     // 初始化與資料遷移
     window.onload = () => {
@@ -1223,3 +1252,4 @@
 </html>
 
 
+```
