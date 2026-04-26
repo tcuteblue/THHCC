@@ -85,6 +85,7 @@
             border-radius: 18px; padding: 20px; color: white; position: relative; overflow: hidden;
             box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 2px 2px rgba(255,255,255,0.3), inset 0 -2px 5px rgba(0,0,0,0.1); 
             min-height: 210px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1);
+            transition: all 0.3s ease;
         }
         /* 仿反光光澤 */
         .card::before {
@@ -93,6 +94,30 @@
             transform: skewX(-20deg); animation: shine 6s infinite; pointer-events: none;
         }
         @keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
+
+        /* 已剪卡樣式 */
+        .card.cancelled {
+            filter: grayscale(80%) sepia(20%) brightness(0.9);
+            opacity: 0.85;
+        }
+        .cancelled-stamp {
+            position: absolute;
+            top: 25px;
+            right: 15px;
+            border: 3px solid rgba(255, 71, 87, 0.9);
+            color: rgba(255, 71, 87, 0.9);
+            font-size: 16px;
+            font-weight: 900;
+            padding: 6px 12px;
+            transform: rotate(15deg);
+            border-radius: 8px;
+            z-index: 10;
+            background: rgba(255,255,255,0.85);
+            pointer-events: none;
+            letter-spacing: 2px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            text-shadow: none;
+        }
 
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
         .card-holder { font-size: 14px; font-weight: normal; opacity: 0.9; text-shadow: none; margin-top: 4px; }
@@ -343,10 +368,21 @@
             <button class="btn-danger" style="border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="closeModal()">✖</button>
         </div>
         <input type="hidden" id="card-id">
-        <div class="form-group">
-            <label>卡片名稱 (自動辨識持卡人)</label>
-            <input type="text" id="card-name" placeholder="例如：宏和中信LINE Pay卡">
+        
+        <div class="form-group flex-row" style="padding: 12px 20px 0 20px;">
+            <div style="flex:2;">
+                <label>卡片名稱 (自動辨識持卡人)</label>
+                <input type="text" id="card-name" placeholder="例如：宏和中信LINE Pay卡">
+            </div>
+            <div style="flex:1;">
+                <label>卡片狀態</label>
+                <select id="card-status" style="font-weight:bold;">
+                    <option value="active">🟢 正常</option>
+                    <option value="cancelled">✂️ 已剪卡</option>
+                </select>
+            </div>
         </div>
+
         <div class="form-group flex-row" style="padding: 0;">
             <div style="flex:1; padding: 10px 20px 10px 20px;">
                 <label>發卡銀行</label>
@@ -438,7 +474,7 @@
         </div>
         <div class="form-group flex-row" style="margin-top: 10px;">
             <button class="btn-primary" style="flex:2; padding:14px; font-size:16px; box-shadow: 0 4px 0 #005f8d;" onclick="saveCard()">💾 儲存並備份</button>
-            <button id="btn-delete" class="btn-danger" style="display:none; flex:1; box-shadow: 0 4px 0 #c0392b;" onclick="deleteCard()">🗑️ 刪除</button>
+            <button id="btn-delete" class="btn-danger" style="display:none; flex:1; box-shadow: 0 4px 0 #c0392b;" onclick="deleteCard()">🗑️ 完全刪除</button>
         </div>
     </div>
 
@@ -524,6 +560,9 @@
             // 舊資料銀行名稱轉移
             if (card.bank === '中國信託') { card.bank = '中信'; migrated = true; }
             if (card.bank === '國泰世華') { card.bank = '國泰'; migrated = true; }
+            
+            // 舊資料狀態預設值
+            if (!card.status) { card.status = 'active'; migrated = true; }
             
             // 舊資料記帳結構轉移
             if (!card.expenses) { card.expenses = []; migrated = true; }
@@ -628,6 +667,15 @@
         container.innerHTML = '';
 
         let filtered = cards.filter(c => (filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH));
+        
+        // 排序：將「已剪卡」狀態的排到陣列最下方
+        filtered.sort((a, b) => {
+            const statusA = a.status || 'active';
+            const statusB = b.status || 'active';
+            if (statusA === statusB) return 0;
+            return statusA === 'active' ? -1 : 1;
+        });
+
         if (filtered.length === 0) {
             container.innerHTML = '<div style="text-align:center; margin-top:60px; color:#7f8fa6; font-size:16px;">📭 目前沒有相符的卡片</div>';
             return;
@@ -639,6 +687,10 @@
             const wrapper = document.createElement('div');
             wrapper.className = 'card-wrapper';
             if (!isListView) { wrapper.style.top = `${index * 48}px`; wrapper.style.zIndex = index; }
+
+            const isCancelled = card.status === 'cancelled';
+            const cancelledClass = isCancelled ? ' cancelled' : '';
+            const cancelledStampHtml = isCancelled ? `<div class="cancelled-stamp">✂️ 已剪卡</div>` : '';
 
             const eTicketHtml = card.etype !== '無' ? 
                 `<div class="card-row"><div><span class="card-label">${card.etype}：</span><span class="card-value">${formatCC(card.eticket)}</span></div><button class="copy-btn" onclick="copyText('${card.eticket}', event)">複製</button></div>` : '';
@@ -674,13 +726,14 @@
             }
 
             wrapper.innerHTML = `
-                <div class="card bank-${card.bank}" onclick="toggleStackCard(this, event)">
+                <div class="card bank-${card.bank}${cancelledClass}" onclick="toggleStackCard(this, event)">
+                    ${cancelledStampHtml}
                     <div class="card-header">
                         <div>
                             <div style="letter-spacing: 1px;">${card.name}</div>
                             <div class="card-holder">持卡人：${card.holder} | ${card.bank}</div>
                         </div>
-                        <button class="copy-btn" style="box-shadow: 0 2px 4px rgba(0,0,0,0.15);" onclick="editCard('${card.id}', event)">✏️ 編輯</button>
+                        <button class="copy-btn" style="box-shadow: 0 2px 4px rgba(0,0,0,0.15); z-index: 2;" onclick="editCard('${card.id}', event)">✏️ 編輯</button>
                     </div>
                     
                     <div class="card-body">
@@ -918,6 +971,7 @@
     function fillForm(card = {}) {
         document.getElementById('card-id').value = card.id || '';
         document.getElementById('card-name').value = card.name || '';
+        document.getElementById('card-status').value = card.status || 'active';
         if(card.bank) document.getElementById('card-bank').value = card.bank;
         if(card.org) document.getElementById('card-org').value = card.org;
         document.getElementById('card-no').value = card.no || '';
@@ -932,7 +986,7 @@
 
     function openModal() {
         document.getElementById('modal-title').innerText = '新增卡片';
-        fillForm({ etype: '無' });
+        fillForm({ etype: '無', status: 'active' });
         toggleBillingDay();
         currentEditingTiers = []; renderTiers();
         document.getElementById('btn-delete').style.display = 'none';
@@ -969,6 +1023,7 @@
 
         const cardData = { 
             id, name, holder: detectHolder(name), 
+            status: document.getElementById('card-status').value,
             bank: document.getElementById('card-bank').value, 
             org: document.getElementById('card-org').value, 
             no, expiry: document.getElementById('card-expiry').value, 
@@ -986,7 +1041,7 @@
     }
 
     function deleteCard() {
-        if(!confirm('確定要刪除此卡片？')) return;
+        if(!confirm('確定要永久刪除此卡片所有資料嗎？\n\n(提示：如果您只是停用這張卡片，建議將「卡片狀態」改為「已剪卡」以保留歷史紀錄。)')) return;
         cards = cards.filter(c => c.id !== document.getElementById('card-id').value);
         saveAndBackup(); closeModal(); renderCards();
     }
@@ -1026,7 +1081,8 @@
                     const wB = b.holder === '宏和' ? 1 : b.holder === '瑋淨' ? 2 : 3;
                     return wA - wB;
                 }).forEach(c => {
-                    content += `------------------------\n卡片名稱：${c.name}\n持卡人：${c.holder}\n發卡組織：${c.org}\n卡號：${formatCC(c.no)}\n到期日：${formatExpiryDisplay(c.expiry)}\n驗證碼：${c.cvv}\n電子票證：${c.etype !== '無' ? c.etype + ' ' + formatCC(c.eticket) : '無'}\n`;
+                    const statusStr = c.status === 'cancelled' ? ' [已剪卡]' : '';
+                    content += `------------------------\n卡片名稱：${c.name}${statusStr}\n持卡人：${c.holder}\n發卡組織：${c.org}\n卡號：${formatCC(c.no)}\n到期日：${formatExpiryDisplay(c.expiry)}\n驗證碼：${c.cvv}\n電子票證：${c.etype !== '無' ? c.etype + ' ' + formatCC(c.eticket) : '無'}\n`;
                     let currSpend = calculateCurrentSpend(c);
                     if (currSpend > 0) content += `本期累積消費：$${formatMoney(currSpend)}\n`;
                     if (c.tiers && c.tiers.length > 0) content += `回饋規則：${c.tiers.map(t => `${t.limit === null ? '無上限' : t.limit+'元'}(${t.rate}%)`).join(' / ')}\n`;
