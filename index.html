@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="zh-TW">
 <head>
@@ -32,14 +33,6 @@
         .controls { padding: 15px; background: white; box-shadow: 0 4px 12px rgba(0,0,0,0.08); position: sticky; top: 0; z-index: 100; border-radius: 0 0 20px 20px; border-bottom: 1px solid #eee; }
         .flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
         
-        /* 安裝 APP 專屬橫幅 */
-        .install-banner {
-            display: flex; background: linear-gradient(135deg, #00b894, #00cec9); padding: 12px 15px; color: white; 
-            border-radius: 15px; margin-bottom: 15px; align-items: center; justify-content: space-between; 
-            box-shadow: 0 4px 12px rgba(0, 184, 148, 0.3); cursor: pointer; transition: all 0.15s ease;
-        }
-        .install-banner:active { transform: translateY(3px); box-shadow: 0 2px 6px rgba(0, 184, 148, 0.2); }
-
         /* 輸入框與選單 - 內嵌立體感 */
         select, input[type="text"], input[type="number"], input[type="file"], textarea { 
             flex: 1; padding: 10px; border: 1px solid var(--border); border-radius: 10px; font-size: 14px; 
@@ -63,6 +56,10 @@
             background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: white; 
             box-shadow: 0 4px 0 #006b9e, 0 5px 10px rgba(0, 122, 181, 0.3);
         }
+        .btn-install {
+            background: linear-gradient(135deg, #00b894, #00cec9); color: white;
+            box-shadow: 0 4px 0 #019074, 0 5px 10px rgba(0, 184, 148, 0.3);
+        }
         .btn-outline { 
             background: white; border: 2px solid var(--primary); color: var(--primary-dark); 
             box-shadow: 0 3px 0 var(--primary), 0 4px 8px rgba(0,0,0,0.05); padding: 8px 12px;
@@ -78,13 +75,13 @@
         /* 清單模式 */
         .list-view { display: flex; flex-direction: column; gap: 20px; }
         
-        /* 堆疊模式 - 改進為 flex-column 避免溢出容器導致底部卡片被裁切 */
+        /* 堆疊模式 */
         .stack-view { display: flex; flex-direction: column; padding-top: 10px; padding-bottom: 40px; }
         .stack-view .card-wrapper { position: relative; width: 100%; transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); cursor: pointer; }
         .stack-view .card-wrapper:not(.expanded) { 
             height: 70px; 
             overflow: hidden; 
-            margin-top: -15px; /* 負邊距製造堆疊感 */
+            margin-top: -15px; 
             box-shadow: 0 -3px 8px rgba(0,0,0,0.15); 
             transform: scale(0.96); 
             opacity: 0.95; 
@@ -92,7 +89,7 @@
         .stack-view .card-wrapper:not(.expanded):first-child { margin-top: 0; }
         .stack-view .card-wrapper.expanded { 
             height: auto; 
-            z-index: 200 !important; /* 確保展開時顯示在最上層 */
+            z-index: 200 !important; 
             margin-top: 15px; 
             margin-bottom: 25px; 
             box-shadow: 0 15px 35px rgba(0,0,0,0.25); 
@@ -100,14 +97,13 @@
             opacity: 1; 
         }
 
-        /* 卡片本體設計 - 增加光澤與立體厚度 */
+        /* 卡片本體設計 */
         .card { 
             border-radius: 18px; padding: 20px; color: white; position: relative; overflow: hidden;
             box-shadow: 0 10px 20px rgba(0,0,0,0.15), inset 0 2px 2px rgba(255,255,255,0.3), inset 0 -2px 5px rgba(0,0,0,0.1); 
             min-height: 210px; display: flex; flex-direction: column; justify-content: space-between; border: 1px solid rgba(255,255,255,0.1);
             transition: all 0.3s ease;
         }
-        /* 仿反光光澤 */
         .card::before {
             content: ''; position: absolute; top: 0; left: -50%; width: 200%; height: 100%;
             background: linear-gradient(to right, rgba(255,255,255,0) 0%, rgba(255,255,255,0.1) 50%, rgba(255,255,255,0) 100%);
@@ -116,27 +112,13 @@
         @keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
 
         /* 已剪卡樣式 */
-        .card.cancelled {
-            filter: grayscale(80%) sepia(20%) brightness(0.9);
-            opacity: 0.85;
-        }
+        .card.cancelled { filter: grayscale(80%) sepia(20%) brightness(0.9); opacity: 0.85; }
         .cancelled-stamp {
-            position: absolute;
-            top: 25px;
-            right: 15px;
-            border: 3px solid rgba(255, 71, 87, 0.9);
-            color: rgba(255, 71, 87, 0.9);
-            font-size: 16px;
-            font-weight: 900;
-            padding: 6px 12px;
-            transform: rotate(15deg);
-            border-radius: 8px;
-            z-index: 10;
-            background: rgba(255,255,255,0.85);
-            pointer-events: none;
-            letter-spacing: 2px;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
-            text-shadow: none;
+            position: absolute; top: 25px; right: 15px; border: 3px solid rgba(255, 71, 87, 0.9);
+            color: rgba(255, 71, 87, 0.9); font-size: 16px; font-weight: 900; padding: 6px 12px;
+            transform: rotate(15deg); border-radius: 8px; z-index: 10;
+            background: rgba(255,255,255,0.85); pointer-events: none; letter-spacing: 2px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2); text-shadow: none;
         }
 
         .card-header { display: flex; justify-content: space-between; align-items: flex-start; font-size: 18px; font-weight: bold; text-shadow: 0 2px 4px rgba(0,0,0,0.4); }
@@ -172,7 +154,6 @@
         .bank-第一 { background: linear-gradient(135deg, #00875A, #003020); }
         .bank-星展 { background: linear-gradient(135deg, #FF3F4A, #111111); }
         
-        /* 新增銀行 CI 顏色設定 */
         .bank-LINEBank { background: linear-gradient(135deg, #2ECC71, #186A3B); }
         .bank-匯豐 { background: linear-gradient(135deg, #E74C3C, #922B21); }
         .bank-台銀 { background: linear-gradient(135deg, #8E44AD, #4A235A); }
@@ -186,31 +167,21 @@
         
         .bank-default { background: linear-gradient(135deg, #7F8FA6, #2F3640); }
 
-        /* 模態框 (新增/編輯/設定) - 圓潤懸浮感 */
+        /* 模態框 */
         .modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: #fdfdfd; z-index: 1000; overflow-y: auto; padding-bottom: 300px; animation: fadeIn 0.2s ease; }
         @keyframes fadeIn { from { opacity: 0; transform: scale(0.98); } to { opacity: 1; transform: scale(1); } }
         .modal-header { padding: 18px 20px; background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: white; display: flex; justify-content: space-between; align-items: center; position: sticky; top:0; z-index: 10; box-shadow: 0 4px 10px rgba(0,0,0,0.1); border-radius: 0 0 20px 20px; margin-bottom: 10px; }
         .form-group { padding: 12px 20px; }
         .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: bold; color: #34495e; }
         
-        /* 回饋級距區塊 */
         .reward-section { background: #fdfefe; padding: 16px; border-radius: 16px; border: 1px solid #dcdde1; margin: 15px 20px; box-shadow: 0 4px 10px rgba(0,0,0,0.03); }
         .tier-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
         .tier-row input { padding: 8px !important; font-size: 14px !important; }
 
-        /* 專屬小彈窗 (用於備註與記帳) */
-        .popup-modal {
-            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; 
-            background: rgba(44, 62, 80, 0.7); z-index: 1200; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px);
-        }
-        .popup-content {
-            background: white; width: 100%; max-width: 400px; border-radius: 24px; overflow: hidden; 
-            box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: bounceUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-            display: flex; flex-direction: column; max-height: 90vh;
-        }
+        .popup-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(44, 62, 80, 0.7); z-index: 1200; align-items: center; justify-content: center; padding: 20px; backdrop-filter: blur(3px); }
+        .popup-content { background: white; width: 100%; max-width: 400px; border-radius: 24px; overflow: hidden; box-shadow: 0 20px 50px rgba(0,0,0,0.3); animation: bounceUp 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275); display: flex; flex-direction: column; max-height: 90vh; }
         @keyframes bounceUp { from { transform: translateY(40px) scale(0.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        /* 明細清單樣式 */
         .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
         .expense-item:last-child { border-bottom: none; }
         .expense-info { flex: 1; }
@@ -219,34 +190,22 @@
         .expense-amt { font-size: 16px; font-weight: bold; color: var(--primary-dark); margin-right: 10px; }
         .expense-actions button { padding: 4px 8px; font-size: 12px; margin-left: 5px; box-shadow: none; }
 
-        /* 自訂螢幕數字鍵盤 - 實體計算機手感 */
+        /* 虛擬鍵盤 */
         #virtual-keypad { 
             position: fixed; bottom: 0; left: 0; width: 100%; background: #e2e6eb; padding: 20px 15px 30px 15px; 
             display: none; grid-template-columns: repeat(3, 1fr); gap: 12px; z-index: 1500; 
             box-shadow: 0 -10px 30px rgba(0,0,0,0.15); border-radius: 24px 24px 0 0; border-top: 1px solid #fff;
         }
-        .key { 
-            background: #ffffff; border: none; padding: 18px 10px; font-size: 26px; font-weight: bold; color: #2c3e50;
-            border-radius: 14px; box-shadow: 0 5px 0 #b2bec3, 0 6px 10px rgba(0,0,0,0.1); 
-            cursor: pointer; transition: all 0.1s ease; transform: translateY(0);
-        }
+        .key { background: #ffffff; border: none; padding: 18px 10px; font-size: 26px; font-weight: bold; color: #2c3e50; border-radius: 14px; box-shadow: 0 5px 0 #b2bec3, 0 6px 10px rgba(0,0,0,0.1); cursor: pointer; transition: all 0.1s ease; transform: translateY(0); }
         .key:active { box-shadow: 0 0px 0 #b2bec3, 0 2px 4px rgba(0,0,0,0.1) !important; transform: translateY(5px); background: #f1f2f6; }
-        
         .key-action { background: #7f8fa6; color: white; box-shadow: 0 5px 0 #576574, 0 6px 10px rgba(0,0,0,0.1); font-size: 18px; }
         .key-action:active { background: #718093; box-shadow: 0 0px 0 #576574 !important; transform: translateY(5px); }
-        
         .key-close { background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: white; grid-column: span 3; box-shadow: 0 5px 0 #005f8d, 0 6px 10px rgba(0,0,0,0.15); font-size: 18px; letter-spacing: 2px; }
         .key-close:active { box-shadow: 0 0px 0 #005f8d !important; transform: translateY(5px); }
 
-        /* 到期日自訂選擇器按鈕 */
-        .expiry-btn {
-            background: #ffffff; border: 2px solid #d1d8e0; padding: 10px 0; font-size: 15px; font-weight: bold; color: #7f8c8d;
-            border-radius: 10px; box-shadow: 0 3px 0 #b2bec3; cursor: pointer; transition: all 0.1s ease; text-align: center;
-        }
+        .expiry-btn { background: #ffffff; border: 2px solid #d1d8e0; padding: 10px 0; font-size: 15px; font-weight: bold; color: #7f8c8d; border-radius: 10px; box-shadow: 0 3px 0 #b2bec3; cursor: pointer; transition: all 0.1s ease; text-align: center; }
         .expiry-btn:active { box-shadow: 0 0px 0 #b2bec3 !important; transform: translateY(3px); background: #f1f2f6; }
-        .expiry-btn.active {
-            background: #eef7fc; border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary);
-        }
+        .expiry-btn.active { background: #eef7fc; border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary); }
         .expiry-btn.active:active { box-shadow: 0 0px 0 var(--primary) !important; transform: translateY(3px); }
         
     </style>
@@ -256,19 +215,6 @@
     <header id="backup-status">✅ 最新自動備份：尚未備份</header>
 
     <div class="controls">
-        
-        <!-- 獨立的安裝 APP 提示區塊 -->
-        <div id="install-banner" class="install-banner" onclick="installPWA()">
-            <div style="display: flex; align-items: center; gap: 10px;">
-                <span style="font-size: 28px; line-height: 1;">📱</span>
-                <div style="display: flex; flex-direction: column; text-align: left;">
-                    <span style="font-size: 15px; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.1);">將網頁安裝成專屬 APP</span>
-                    <span style="font-size: 12px; opacity: 0.95;">加到手機桌面，一鍵開啟更順暢</span>
-                </div>
-            </div>
-            <div style="background: white; color: #009074; padding: 6px 14px; border-radius: 20px; font-weight: bold; font-size: 13px; box-shadow: 0 2px 5px rgba(0,0,0,0.1);">立即安裝</div>
-        </div>
-
         <div class="flex-row">
             <select id="filter-bank" onchange="renderCards()">
                 <option value="All">全部銀行</option>
@@ -282,18 +228,12 @@
         </div>
         <div class="flex-row" style="margin-bottom:0;">
             <button class="btn-primary" style="flex: 2;" onclick="openModal()">➕ 新增卡片</button>
+            <button id="install-btn" class="btn-install" style="flex: 1; display: none;" onclick="installPWA()">📱 安裝</button>
             <button class="btn-outline" style="flex: 1; border-width: 1px;" onclick="openSettings()">⚙️ 設定</button>
-        </div>
-        
-        <!-- 卡片數量統計顯示 -->
-        <div id="card-count-display" style="text-align: right; margin-top: 10px; font-size: 13px; font-weight: bold; color: #7f8fa6;">
-            載入中...
         </div>
     </div>
 
-    <div id="card-container" class="list-view">
-        <!-- 卡片由 JS 生成 -->
-    </div>
+    <div id="card-container" class="list-view"></div>
 
     <!-- 程式設定模態框 -->
     <div id="settings-modal" class="modal">
@@ -319,19 +259,17 @@
         </div>
     </div>
 
-    <!-- 小彈窗 (備註用) -->
+    <!-- 備註與記帳彈窗 -->
     <div id="view-note-modal" class="popup-modal">
         <div class="popup-content">
             <div class="modal-header" style="padding: 15px 20px; border-radius: 0; flex-shrink: 0;">
                 <h4 style="margin:0; font-size:18px;" id="view-note-title">卡片備註</h4>
                 <button class="btn-danger" style="border-radius:50%; width:32px; height:32px; padding:0; display:flex; align-items:center; justify-content:center; font-size:16px; box-shadow: 0 2px 5px rgba(0,0,0,0.2);" onclick="closePopupModal('view-note-modal')">✖</button>
             </div>
-            <div id="view-note-content" style="padding: 25px; color: #2c3e50; line-height: 1.6; white-space: pre-wrap; word-break: break-all; overflow-y: auto; font-size: 15px;">
-            </div>
+            <div id="view-note-content" style="padding: 25px; color: #2c3e50; line-height: 1.6; white-space: pre-wrap; word-break: break-all; overflow-y: auto; font-size: 15px;"></div>
         </div>
     </div>
 
-    <!-- 小彈窗 (記帳/消費明細用) -->
     <div id="expense-modal" class="popup-modal">
         <div class="popup-content">
             <div class="modal-header" style="padding: 15px 20px; border-radius: 0; flex-shrink: 0;">
@@ -351,16 +289,13 @@
                 <input type="text" id="expense-note" placeholder="新增備註 (選填)" style="width:100%; padding:10px; font-size:14px; background:white;">
             </div>
             <div style="padding: 10px 20px; background: #f4f6f8; font-size:13px; font-weight:bold; color:#7f8c8d; display:flex; justify-content:space-between;">
-                <span>本期明細</span>
-                <span id="expense-cycle-display" style="color:var(--primary-dark);"></span>
+                <span>本期明細</span><span id="expense-cycle-display" style="color:var(--primary-dark);"></span>
             </div>
-            <div id="expense-list-container" style="padding: 0 10px 20px 10px; overflow-y: auto; flex-grow: 1;">
-                <!-- 紀錄列表動態生成 -->
-            </div>
+            <div id="expense-list-container" style="padding: 0 10px 20px 10px; overflow-y: auto; flex-grow: 1;"></div>
         </div>
     </div>
 
-    <!-- 小彈窗 (自訂到期日選擇器) -->
+    <!-- 到期日選擇器 -->
     <div id="expiry-modal" class="popup-modal">
         <div class="popup-content" style="max-width: 360px;">
             <div class="modal-header" style="padding: 15px 20px; border-radius: 0; flex-shrink: 0;">
@@ -369,25 +304,19 @@
             </div>
             <div style="padding: 20px; background: #f4f6f8;">
                 <div style="display: flex; gap: 15px;">
-                    <!-- 月份 -->
                     <div style="flex: 1;">
                         <div style="display:flex; justify-content:center; align-items:center; margin-bottom:10px; height: 26px;">
                             <label style="font-weight:bold; color:#34495e; margin:0;">月份 (MM)</label>
                         </div>
-                        <div id="expiry-month-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                            <!-- JS 生成 -->
-                        </div>
+                        <div id="expiry-month-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
                     </div>
-                    <!-- 年份 -->
                     <div style="flex: 1;">
                         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; height: 26px;">
                             <button class="btn-outline" style="padding: 2px 8px; font-size: 14px; box-shadow:none; border-radius: 6px;" onclick="changeYearPage(-1)">◀</button>
                             <label style="text-align:center; font-weight:bold; color:#34495e; margin:0;">年份 (YY)</label>
                             <button class="btn-outline" style="padding: 2px 8px; font-size: 14px; box-shadow:none; border-radius: 6px;" onclick="changeYearPage(1)">▶</button>
                         </div>
-                        <div id="expiry-year-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;">
-                            <!-- JS 生成 -->
-                        </div>
+                        <div id="expiry-year-grid" style="display:grid; grid-template-columns: repeat(3, 1fr); gap: 8px;"></div>
                     </div>
                 </div>
                 <button class="btn-primary" style="width: 100%; margin-top: 20px; padding: 14px; font-size: 16px; box-shadow: 0 4px 0 #005f8d;" onclick="confirmExpiry()">✅ 確定</button>
@@ -395,7 +324,7 @@
         </div>
     </div>
 
-    <!-- 新增/編輯卡片表單 -->
+    <!-- 表單模態框 -->
     <div id="form-modal" class="modal">
         <div class="modal-header">
             <h3 id="modal-title" style="margin:0;">新增卡片</h3>
@@ -405,7 +334,7 @@
         
         <div class="form-group flex-row" style="padding: 12px 20px 0 20px;">
             <div style="flex:2;">
-                <label>卡片名稱 (自動辨識持卡人)</label>
+                <label>卡片名稱</label>
                 <input type="text" id="card-name" placeholder="例如：宏和中信LINE Pay卡">
             </div>
             <div style="flex:1;">
@@ -435,8 +364,8 @@
         <div class="form-group">
             <label>信用卡號 (16碼)</label>
             <div style="position: relative; display: flex; align-items: center;">
-                <input type="text" id="card-no" oninput="handleInput(this)" placeholder="輸入卡號 (可按右側 ⌨️ 開啟數字鍵盤)" style="width: 100%; padding-right: 40px; letter-spacing: 2px; font-family: monospace; font-size: 18px;">
-                <span onclick="openKeypad('card-no')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+                <input type="text" id="card-no" oninput="handleInput(this)" placeholder="輸入卡號" style="width: 100%; padding-right: 40px; letter-spacing: 2px; font-family: monospace; font-size: 18px;">
+                <span onclick="openKeypad('card-no')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
             </div>
         </div>
         <div class="form-group flex-row" style="padding: 0;">
@@ -444,24 +373,21 @@
                 <label>到期日 (MMYY)</label>
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="card-expiry" oninput="handleInput(this)" placeholder="例如: 1228" style="width: 100%; padding-right: 75px; font-family: monospace; font-size: 18px;">
-                    <!-- 自訂到期日選擇器按鈕 -->
-                    <span onclick="openKeypad('card-expiry')" style="position: absolute; right: 42px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
-                    <span onclick="openExpiryPicker()" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟日期選擇器">📅</span>
+                    <span onclick="openKeypad('card-expiry')" style="position: absolute; right: 42px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
+                    <span onclick="openExpiryPicker()" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">📅</span>
                 </div>
             </div>
             <div style="flex:1; padding: 10px 20px 10px 0;">
                 <label>驗證碼 (3碼)</label>
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="card-cvv" oninput="handleInput(this)" placeholder="例如: 123" style="width: 100%; padding-right: 40px; font-family: monospace; font-size: 18px;">
-                    <span onclick="openKeypad('card-cvv')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+                    <span onclick="openKeypad('card-cvv')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
                 </div>
             </div>
         </div>
         
-        <!-- 消費與回饋設定 -->
         <div class="form-group reward-section">
             <label style="color: var(--primary-dark); font-size: 15px;">💰 結帳與回饋規則</label>
-            
             <div style="display:flex; gap:10px; margin-bottom:12px; background: white; padding: 12px; border-radius: 10px; box-shadow: 0 2px 5px rgba(0,0,0,0.02);">
                 <div style="flex:1;">
                     <label style="font-size:12px; color:#7f8c8d; font-weight:bold;">回饋結算帳單月</label>
@@ -475,11 +401,8 @@
                     <input type="number" id="card-billing-day" min="1" max="31" placeholder="例如: 15" style="padding:8px; font-size:13px;">
                 </div>
             </div>
-
             <span style="font-size: 12px; color: #7f8c8d; display:block; margin-bottom:8px; font-weight:bold;">設定階梯式回饋級距</span>
-            <div id="tiers-container">
-                <!-- 動態生成的級距 -->
-            </div>
+            <div id="tiers-container"></div>
             <button class="btn-outline" style="width: 100%; margin-top: 10px; padding: 10px; border-style: dashed; box-shadow:none; background:transparent;" onclick="addTier(event)">➕ 新增回饋級距</button>
         </div>
 
@@ -497,7 +420,7 @@
                 <label>票證號碼 (16碼)</label>
                 <div style="position: relative; display: flex; align-items: center;">
                     <input type="text" id="card-eticket" oninput="handleInput(this)" placeholder="若無可留白" style="width: 100%; padding-right: 40px; font-family: monospace;">
-                    <span onclick="openKeypad('card-eticket')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);" title="開啟數字鍵盤">⌨️</span>
+                    <span onclick="openKeypad('card-eticket')" style="position: absolute; right: 8px; cursor: pointer; z-index: 10; font-size: 18px; padding: 6px; border-radius: 8px; background: rgba(0, 159, 227, 0.1); box-shadow: inset 0 1px 3px rgba(0,0,0,0.1), 0 1px 1px rgba(255,255,255,0.8);">⌨️</span>
                 </div>
             </div>
         </div>
@@ -530,7 +453,6 @@
     </div>
 
 <script>
-    // 整合所有台灣各大銀行與網銀 (調整排序與內容)
     const BANKS = [
         "中信", "國泰", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山",
         "彰化", "元大", "新光", "凱基", "第一", "星展", 
@@ -541,20 +463,13 @@
     let isListView = true;
     let activeInputId = null;
     let currentEditingTiers = [];
-    
-    // PWA 安裝變數與偵測
+    let tempSelectedMonth = '';
+    let tempSelectedYear = '';
+    let currentYearPageStart = 0; 
     let deferredPrompt = null;
 
-    // 偵測是否為蘋果 iOS 設備
-    const isIos = () => {
-        const userAgent = window.navigator.userAgent.toLowerCase();
-        return /iphone|ipad|ipod/.test(userAgent);
-    };
-
-    // 偵測是否已經是以 APP (Standalone) 模式執行
-    const isInStandaloneMode = () => {
-        return ('standalone' in window.navigator && window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
-    };
+    const isIos = () => /iphone|ipad|ipod/.test(window.navigator.userAgent.toLowerCase());
+    const isInStandaloneMode = () => ('standalone' in window.navigator && window.navigator.standalone) || window.matchMedia('(display-mode: standalone)').matches;
 
     if ('serviceWorker' in navigator) {
         const swCode = `
@@ -567,41 +482,45 @@
         navigator.serviceWorker.register(swUrl).catch(err => console.log('SW Registration failed', err));
     }
 
-    // 監聽 Android/Chrome 原生安裝提示
+    // Android/Chrome 攔截原生安裝提示
     window.addEventListener('beforeinstallprompt', (e) => {
         e.preventDefault();
         deferredPrompt = e;
     });
 
-    window.addEventListener('appinstalled', () => {
-        document.getElementById('install-banner').style.display = 'none';
+    // 介面讀取完畢後，強制顯示安裝按鈕 (除非已經是 APP 模式)
+    window.addEventListener('DOMContentLoaded', () => {
+        if (!isInStandaloneMode()) {
+            document.getElementById('install-btn').style.display = 'inline-block';
+        }
     });
 
-    // 無論如何先顯示安裝按鈕，除非已經是在 APP 模式中執行
-    window.addEventListener('DOMContentLoaded', () => {
-        if (isInStandaloneMode()) {
-            document.getElementById('install-banner').style.display = 'none';
-        }
+    window.addEventListener('appinstalled', () => {
+        document.getElementById('install-btn').style.display = 'none';
+        alert('🎉 應用程式安裝成功！您可以在桌面找到它了。');
     });
 
     // 執行安裝流程
     async function installPWA() {
         if (deferredPrompt) {
-            // Android / Chrome 觸發原生安裝提示
+            // 如果環境允許，Android / Chrome 會自動彈出安裝視窗
             deferredPrompt.prompt();
-            await deferredPrompt.userChoice;
-            deferredPrompt = null;
-            document.getElementById('install-banner').style.display = 'none';
+            const { outcome } = await deferredPrompt.userChoice;
+            if (outcome === 'accepted') {
+                deferredPrompt = null;
+                document.getElementById('install-btn').style.display = 'none';
+            }
         } else {
-            // 蘋果 iOS 或是瀏覽器不支援自動 prompt，彈出教學引導
-            const msg = isIos() 
-                ? '🍎 蘋果 iOS 安裝教學：\n\n1. 請點選瀏覽器底部的「分享」圖示 (有向上箭頭的方塊)\n2. 往下滑動並點選「加入主畫面」\n3. 點擊右上角的「新增」即可將卡夾安裝到手機桌面！'
-                : '🤖 桌面 APP 安裝教學：\n\n【Android / 電腦版 Chrome】\n請點擊瀏覽器右上角的「設定 (三個點)」圖示 ➔ 選擇「加到主畫面」或「安裝應用程式」。\n\n這樣以後就可以直接從桌面快速開啟囉！';
+            // 如果是在內嵌視窗 (Preview) 或是 iOS，瀏覽器基於安全會阻擋自動安裝，改跳教學
+            let msg = '⚠️ 無法自動安裝：因為您目前正在「預覽畫面(內嵌網頁)」中，瀏覽器基於安全限制阻擋了自動安裝。\n\n';
+            msg += '💡 如何才能順利安裝？\n';
+            msg += '您需要將這段 HTML 程式碼下載，並放在真實的網頁伺服器上 (例如 GitHub Pages 或 Zeabur)。\n\n';
+            msg += '然後用手機的 Chrome 打開那個專屬網址，底下就會自動跳出「將應用程式加到主畫面」的提示了！';
+            
             alert(msg);
         }
     }
 
-    // 初始化與資料遷移
     window.onload = () => {
         const bankSelect = document.getElementById('card-bank');
         const filterBank = document.getElementById('filter-bank');
@@ -612,14 +531,9 @@
         
         let migrated = false;
         cards.forEach(card => {
-            // 舊資料銀行名稱轉移
             if (card.bank === '中國信託') { card.bank = '中信'; migrated = true; }
             if (card.bank === '國泰世華') { card.bank = '國泰'; migrated = true; }
-            
-            // 舊資料狀態預設值
             if (!card.status) { card.status = 'active'; migrated = true; }
-            
-            // 舊資料記帳結構轉移
             if (!card.expenses) { card.expenses = []; migrated = true; }
             if (card.currentSpend !== undefined && card.expenses.length === 0) {
                 card.expenses.push({ id: generateId(), timestamp: new Date().getTime(), amount: card.currentSpend, note: '期初結轉' });
@@ -633,7 +547,6 @@
         renderCards();
     };
 
-    // 工具函式優化 (抽離補零共用邏輯)
     const padNum = (n) => n.toString().padStart(2, '0');
     const formatMoney = (num) => Number(num).toLocaleString('en-US');
     const formatCC = (num) => num ? num.replace(/(.{4})/g, '$1-').replace(/-$/, '') : '';
@@ -647,7 +560,6 @@
         const d = new Date(ts);
         return `${d.getFullYear()}/${padNum(d.getMonth()+1)}/${padNum(d.getDate())} ${padNum(d.getHours())}:${padNum(d.getMinutes())}`;
     };
-
     const detectHolder = (name) => {
         if (name.includes('宏和')) return '宏和';
         if (name.includes('瑋淨')) return '瑋淨';
@@ -660,13 +572,11 @@
         return text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color: #ffdd59; text-decoration: underline; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${url}</a>`);
     }
 
-    // 取得指定卡片與其索引 (優化重複搜尋)
     function getCardData(id) {
         const index = cards.findIndex(c => c.id === id);
         return index > -1 ? { card: cards[index], index } : null;
     }
 
-    // 共用複製邏輯
     function performCopy(text, event) {
         if(event) event.stopPropagation();
         const tempTextArea = document.createElement("textarea");
@@ -679,7 +589,6 @@
     const copyText = (text, event) => performCopy(text, event);
     const copyAll = (no, exp, cvv, event) => performCopy(`${no} ${exp} ${cvv}`, event);
 
-    // 計算本期區間
     function getCycleInfo(card) {
         const now = new Date();
         const y = now.getFullYear(), m = now.getMonth();
@@ -714,26 +623,14 @@
         return { reward: Math.round(reward), maxLimit: sorted[sorted.length - 1].limit };
     }
 
-    // 渲染卡片與統計數量
     function renderCards() {
         const container = document.getElementById('card-container');
         const filterB = document.getElementById('filter-bank').value;
         const filterH = document.getElementById('filter-holder').value;
-        const countDisplay = document.getElementById('card-count-display');
         container.innerHTML = '';
 
         let filtered = cards.filter(c => (filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH));
         
-        // 更新卡片數量統計顯示
-        if (countDisplay) {
-            if (filterB === 'All' && filterH === 'All') {
-                countDisplay.innerText = `總共 ${filtered.length} 張卡片`;
-            } else {
-                countDisplay.innerText = `篩選顯示 ${filtered.length} 張 / 總共 ${cards.length} 張`;
-            }
-        }
-
-        // 排序：將「已剪卡」狀態的排到陣列最下方
         filtered.sort((a, b) => {
             const statusA = a.status || 'active';
             const statusB = b.status || 'active';
@@ -751,10 +648,7 @@
         filtered.forEach((card, index) => {
             const wrapper = document.createElement('div');
             wrapper.className = 'card-wrapper';
-            // 不再使用絕對定位 (wrapper.style.top = ...)，改由 flex 排版，只保留 zIndex
-            if (!isListView) { 
-                wrapper.style.zIndex = index; 
-            }
+            if (!isListView) wrapper.style.zIndex = index; 
 
             const isCancelled = card.status === 'cancelled';
             const cancelledClass = isCancelled ? ' cancelled' : '';
@@ -825,7 +719,6 @@
         });
     }
 
-    // 視圖切換
     function toggleView() {
         isListView = !isListView;
         document.getElementById('view-toggle-btn').innerText = isListView ? '📋 清單' : '🗂️ 堆疊';
@@ -843,7 +736,6 @@
         }
     }
 
-    // 彈窗與一般輸入處理
     function closePopupModal(modalId) { document.getElementById(modalId).style.display = 'none'; closeKeypad(); }
 
     function handleInput(el) {
@@ -852,11 +744,9 @@
         el.value = val.substring(0, maxL);
     }
 
-    // 自訂到期日選擇器
     function openExpiryPicker() {
         const val = document.getElementById('card-expiry').value;
         let cy = parseInt(new Date().getFullYear().toString().substring(2, 4));
-
         if (val && val.length === 4) {
             tempSelectedMonth = val.substring(0, 2);
             tempSelectedYear = val.substring(2, 4);
@@ -866,7 +756,6 @@
             tempSelectedYear = cy.toString();
             currentYearPageStart = cy;
         }
-        
         if (currentYearPageStart < 0) currentYearPageStart = 0;
         renderExpiryGrids();
         document.getElementById('expiry-modal').style.display = 'flex';
@@ -884,7 +773,6 @@
             let mStr = padNum(i + 1);
             return `<div class="expiry-btn ${tempSelectedMonth === mStr ? 'active' : ''}" onclick="setTempExpiry('month', '${mStr}')">${mStr}</div>`;
         }).join('');
-        
         const yGrid = document.getElementById('expiry-year-grid');
         yGrid.innerHTML = Array.from({length: 12}, (_, i) => {
             let y = currentYearPageStart + i;
@@ -894,11 +782,7 @@
         }).join('');
     }
 
-    function setTempExpiry(type, val) {
-        type === 'month' ? (tempSelectedMonth = val) : (tempSelectedYear = val);
-        renderExpiryGrids();
-    }
-
+    function setTempExpiry(type, val) { type === 'month' ? (tempSelectedMonth = val) : (tempSelectedYear = val); renderExpiryGrids(); }
     function confirmExpiry() {
         const input = document.getElementById('card-expiry');
         input.value = tempSelectedMonth + tempSelectedYear;
@@ -906,23 +790,19 @@
         closePopupModal('expiry-modal');
     }
 
-    // 記帳明細功能
     function openExpenseModal(id, event) {
         if(event) event.stopPropagation();
         const data = getCardData(id);
         if(!data) return;
         const { card } = data;
-        
         document.getElementById('expense-title').innerText = `記帳 - ${card.name}`;
         document.getElementById('expense-card-id').value = card.id;
         document.getElementById('editing-expense-id').value = '';
         document.getElementById('expense-amount').value = '';
         document.getElementById('expense-note').value = '';
         document.getElementById('btn-save-expense').innerText = '💾 儲存';
-        
         const cycle = getCycleInfo(card);
         document.getElementById('expense-cycle-display').innerText = `${padNum(cycle.start.getMonth()+1)}/${padNum(cycle.start.getDate())} - ${padNum(cycle.end.getMonth()+1)}/${padNum(cycle.end.getDate())}`;
-
         renderExpenseList(card, cycle);
         document.getElementById('expense-modal').style.display = 'flex';
     }
@@ -930,16 +810,11 @@
     function renderExpenseList(card, cycle) {
         const container = document.getElementById('expense-list-container');
         if (!card.expenses) card.expenses = [];
-        
-        const currExps = card.expenses
-            .filter(e => e.timestamp >= cycle.start.getTime() && e.timestamp <= cycle.end.getTime())
-            .sort((a, b) => b.timestamp - a.timestamp);
-
+        const currExps = card.expenses.filter(e => e.timestamp >= cycle.start.getTime() && e.timestamp <= cycle.end.getTime()).sort((a, b) => b.timestamp - a.timestamp);
         if (currExps.length === 0) {
             container.innerHTML = '<div style="text-align:center; padding: 20px; color:#bdc3c7;">尚無消費紀錄</div>';
             return;
         }
-
         container.innerHTML = currExps.map(exp => `
             <div class="expense-item">
                 <div class="expense-info">
@@ -962,9 +837,7 @@
         const editId = document.getElementById('editing-expense-id').value;
         const amount = Number(document.getElementById('expense-amount').value);
         const noteStr = document.getElementById('expense-note').value.trim();
-        
         if (!amount || amount <= 0) return alert('請輸入有效的金額');
-
         if (!card.expenses) card.expenses = [];
         if (editId) {
             const exp = card.expenses.find(e => e.id === editId);
@@ -972,9 +845,7 @@
         } else {
             card.expenses.push({ id: generateId(), timestamp: new Date().getTime(), amount, note: noteStr });
         }
-        
         saveAndBackup(); renderCards();
-        
         document.getElementById('editing-expense-id').value = '';
         document.getElementById('expense-amount').value = '';
         document.getElementById('expense-note').value = '';
@@ -1004,7 +875,6 @@
         }
     }
 
-    // 備註彈窗
     function openNoteModal(id, event) {
         if(event) event.stopPropagation();
         const data = getCardData(id);
@@ -1014,10 +884,7 @@
         document.getElementById('view-note-modal').style.display = 'flex';
     }
 
-    // 卡片表單邏輯
-    function toggleBillingDay() {
-        document.getElementById('billing-day-container').style.display = document.getElementById('card-cycle-type').value === 'billing' ? 'block' : 'none';
-    }
+    function toggleBillingDay() { document.getElementById('billing-day-container').style.display = document.getElementById('card-cycle-type').value === 'billing' ? 'block' : 'none'; }
 
     function renderTiers() {
         document.getElementById('tiers-container').innerHTML = currentEditingTiers.map((tier, idx) => `
@@ -1067,14 +934,11 @@
         if(event) event.stopPropagation();
         const data = getCardData(id);
         if(!data) return;
-        
         document.getElementById('modal-title').innerText = '編輯卡片';
         fillForm(data.card);
         toggleBillingDay();
-        
         currentEditingTiers = data.card.tiers ? JSON.parse(JSON.stringify(data.card.tiers)) : [];
         renderTiers();
-        
         document.getElementById('btn-delete').style.display = 'block';
         document.getElementById('form-modal').style.display = 'block';
     }
@@ -1084,26 +948,19 @@
         const name = document.getElementById('card-name').value;
         const no = document.getElementById('card-no').value;
         if(!name || !no) return alert('請至少輸入名稱與卡號');
-
         const sortedTiers = [...currentEditingTiers].sort((a, b) => (a.limit === null ? Infinity : a.limit) - (b.limit === null ? Infinity : b.limit));
         const data = getCardData(id);
         const preservedExpenses = data ? (data.card.expenses || []) : [];
 
         const cardData = { 
             id, name, holder: detectHolder(name), 
-            status: document.getElementById('card-status').value,
-            bank: document.getElementById('card-bank').value, 
-            org: document.getElementById('card-org').value, 
-            no, expiry: document.getElementById('card-expiry').value, 
-            cvv: document.getElementById('card-cvv').value, 
-            etype: document.getElementById('card-etype').value, 
-            eticket: document.getElementById('card-eticket').value, 
-            note: document.getElementById('card-note').value.trim(), 
-            cycleType: document.getElementById('card-cycle-type').value, 
-            billingDay: document.getElementById('card-billing-day').value, 
+            status: document.getElementById('card-status').value, bank: document.getElementById('card-bank').value, 
+            org: document.getElementById('card-org').value, no, expiry: document.getElementById('card-expiry').value, 
+            cvv: document.getElementById('card-cvv').value, etype: document.getElementById('card-etype').value, 
+            eticket: document.getElementById('card-eticket').value, note: document.getElementById('card-note').value.trim(), 
+            cycleType: document.getElementById('card-cycle-type').value, billingDay: document.getElementById('card-billing-day').value, 
             tiers: sortedTiers, expenses: preservedExpenses 
         };
-        
         data ? (cards[data.index] = cardData) : cards.push(cardData);
         saveAndBackup(); closeModal(); renderCards();
     }
@@ -1114,7 +971,6 @@
         saveAndBackup(); closeModal(); renderCards();
     }
 
-    // 設定、備份與還原
     function openSettings() { document.getElementById('settings-modal').style.display = 'block'; }
     function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; document.getElementById('import-file').value = ''; }
 
@@ -1126,13 +982,10 @@
         exportData('json', true);
     }
 
-    function updateBackupStatus(timeStr) {
-        if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`;
-    }
+    function updateBackupStatus(timeStr) { if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`; }
 
     function exportData(type, isAuto = false) {
         if (cards.length === 0 && !isAuto) return alert('沒有資料可匯出');
-        
         const timeKey = getTimestampStr();
         let content = '', filename = '', mimeType = '';
 
@@ -1185,13 +1038,11 @@
         reader.readAsText(file);
     }
 
-    // 手動喚起自訂鍵盤
     function openKeypad(inputId) {
         activeInputId = inputId;
         document.getElementById('virtual-keypad').style.display = 'grid';
         const el = document.getElementById(inputId);
         if(el) {
-            // 設定 inputmode="none" 避免手機在叫出虛擬鍵盤時又彈出原生鍵盤
             el.setAttribute('inputmode', 'none'); 
             el.classList.add('keypad-active');
             el.focus();
@@ -1199,7 +1050,6 @@
         }
     }
     
-    // 收起鍵盤，還原為一般原生輸入狀態
     function closeKeypad() { 
         if (activeInputId) {
             const el = document.getElementById(activeInputId);
@@ -1212,7 +1062,6 @@
         document.getElementById('virtual-keypad').style.display = 'none'; 
     }
 
-    // 自動偵測當鍵盤開啟時，透過 TAB 或點擊切換焦點的情形
     document.addEventListener('focusin', e => {
         if (activeInputId && e.target.tagName === 'INPUT') {
             const supportedIds = ['card-no', 'card-expiry', 'card-cvv', 'card-eticket', 'expense-amount'];
@@ -1227,17 +1076,12 @@
                     e.target.setAttribute('inputmode', 'none');
                     e.target.classList.add('keypad-active');
                 }
-            } else {
-                closeKeypad();
-            }
+            } else { closeKeypad(); }
         }
     });
 
-    // 鍵盤與實體按鍵相容邏輯
     document.addEventListener('keydown', e => {
-        // 只有在虛擬鍵盤「打開」的情況下，才攔截數字鍵
         if (!activeInputId) return; 
-        
         if (/^[0-9]$/.test(e.key)) { keyPress(e.key); e.preventDefault(); } 
         else if (e.key === 'Backspace') { keyPress('del'); e.preventDefault(); } 
         else if (e.key === 'Delete') { keyPress('clear'); e.preventDefault(); } 
@@ -1272,3 +1116,4 @@
 </html>
 
 
+```
