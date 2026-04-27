@@ -241,11 +241,8 @@
 </head>
 <body>
 
-    <header style="display: flex; justify-content: space-between; align-items: center; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 10px 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 101;">
-        <div id="backup-status" style="font-size: 11px; opacity: 0.9;">✅ 最新自動備份：尚未備份</div>
-        <button id="install-top-btn" class="btn-install" style="padding: 5px 12px; font-size: 13px; box-shadow: 0 2px 0 #019074; margin: 0; display: flex; align-items: center; gap: 5px;" onclick="handleInstallClick()">
-            <span>📱</span> 安裝 APP
-        </button>
+    <header style="display: flex; justify-content: center; align-items: center; background: linear-gradient(135deg, #2c3e50, #34495e); color: white; padding: 10px 15px; box-shadow: 0 2px 4px rgba(0,0,0,0.1); position: relative; z-index: 101;">
+        <div id="backup-status" style="font-size: 12px; opacity: 0.9;">✅ 最新自動備份：尚未備份</div>
     </header>
 
     <div class="controls">
@@ -260,9 +257,16 @@
             </select>
             <button class="btn-outline" onclick="toggleView()" id="view-toggle-btn">📋 清單</button>
         </div>
-        <div class="flex-row" style="margin-bottom:0;">
+        <div class="flex-row" style="margin-bottom:10px;">
             <button class="btn-primary" style="flex: 2;" onclick="openModal()">➕ 新增卡片</button>
             <button class="btn-outline" style="flex: 1; border-width: 1px;" onclick="openSettings()">⚙️ 設定</button>
+        </div>
+        
+        <!-- 獨立的安裝按鈕列，預設顯示 -->
+        <div class="flex-row" style="margin-bottom:0;" id="install-btn-container">
+             <button id="install-top-btn" class="btn-install pulse-animation" style="flex: 1; display: flex; justify-content: center; align-items: center; gap: 8px; font-size: 15px; padding: 12px;" onclick="handleInstallClick()">
+                <span style="font-size: 18px;">📱</span> <span style="letter-spacing: 1px;">安裝為手機桌面 APP (離線使用)</span>
+            </button>
         </div>
     </div>
 
@@ -581,7 +585,11 @@
             deferredPrompt.userChoice.then((choiceResult) => {
                 deferredPrompt = null;
                 const btn = document.getElementById('install-top-btn');
-                if (btn) btn.classList.remove('pulse-animation');
+                if (btn) {
+                    btn.classList.remove('pulse-animation');
+                    // 隱藏整個安裝按鈕區塊
+                    document.getElementById('install-btn-container').style.display = 'none';
+                }
             });
         } else {
             // 如果無法自動彈出 (如 iOS 或部分瀏覽器限制)，顯示教學圖文
@@ -591,6 +599,9 @@
 
     window.addEventListener('appinstalled', () => {
         console.log('App 已成功安裝');
+        // 安裝成功後隱藏安裝按鈕區塊
+        const container = document.getElementById('install-btn-container');
+        if (container) container.style.display = 'none';
     });
 
     // 初始化與資料遷移
@@ -602,6 +613,12 @@
             filterBank.innerHTML += `<option value="${bank}">${bank}</option>`;
         });
         
+        // 如果已經在 PWA 模式下執行，隱藏安裝按鈕
+        if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
+            const container = document.getElementById('install-btn-container');
+            if (container) container.style.display = 'none';
+        }
+
         let migrated = false;
         cards.forEach(card => {
             // 舊資料銀行名稱轉移
