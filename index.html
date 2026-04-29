@@ -627,6 +627,9 @@
 
     <div class="controls">
         <div class="flex-row">
+            <input type="text" id="search-input" oninput="renderCards()" placeholder="🔍 搜尋名稱、號碼末四碼、備註..." style="border-radius:15px; padding-left:15px; font-weight:bold;">
+        </div>
+        <div class="flex-row">
             <select id="filter-bank" onchange="renderCards()">
                 <option value="All">全部銀行</option>
             </select>
@@ -1076,10 +1079,42 @@
             const container = document.getElementById('card-container');
             const filterB = document.getElementById('filter-bank').value;
             const filterH = document.getElementById('filter-holder').value;
+            
+            // 取得搜尋欄文字並處理
+            const searchInputEl = document.getElementById('search-input');
+            const searchTerm = searchInputEl ? searchInputEl.value.toLowerCase() : '';
+            const searchCleanNum = searchTerm.replace(/\D/g, ''); // 專門留給卡號比對用（忽略空格或-）
+
             const statsDiv = document.getElementById('card-stats');
             
             container.innerHTML = '';
-            let filtered = cards.filter(c => (filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH));
+            
+            // 進行複合過濾 (銀行 + 持卡人 + 搜尋關鍵字)
+            let filtered = cards.filter(c => {
+                // 1. 判斷下拉選單條件
+                const matchDropdowns = (filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH);
+                if (!matchDropdowns) return false;
+
+                // 2. 若無搜尋字詞，直接放行
+                if (searchTerm === '') return true;
+
+                // 3. 判斷搜尋條件 (文字比對)
+                const nameMatch = (c.name || '').toLowerCase().includes(searchTerm);
+                const bankMatch = (c.bank || '').toLowerCase().includes(searchTerm);
+                const holderMatch = (c.holder || '').toLowerCase().includes(searchTerm);
+                const orgMatch = (c.org || '').toLowerCase().includes(searchTerm);
+                const noteMatch = (c.note || '').toLowerCase().includes(searchTerm);
+
+                // 4. 判斷搜尋條件 (號碼比對：清除原有卡號的橫線/空格)
+                const noClean = (c.no || '').replace(/\D/g, '');
+                const eticketClean = (c.eticket || '').replace(/\D/g, '');
+                
+                const noMatch = searchCleanNum !== '' && noClean.includes(searchCleanNum);
+                const eticketMatch = searchCleanNum !== '' && eticketClean.includes(searchCleanNum);
+
+                // 只要滿足任一搜尋條件即可
+                return nameMatch || bankMatch || holderMatch || orgMatch || noteMatch || noMatch || eticketMatch;
+            });
             
             filtered.sort((a, b) => {
                 const statusA = a.status || 'active';
