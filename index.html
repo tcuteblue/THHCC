@@ -17,612 +17,218 @@
             --border: #d1d8e0
         }
 
-        * {
-            box-sizing: border-box;
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
-        }
+        * { box-sizing: border-box; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
 
         body {
-            margin: 0;
-            padding: 0;
-            background-color: var(--bg-color);
-            color: var(--text-color);
-            overflow-x: hidden;
-            scroll-behavior: smooth
+            margin: 0; padding: 0;
+            background-color: var(--bg-color); color: var(--text-color);
+            overflow-x: hidden; scroll-behavior: smooth;
+        }
+
+        /* 【核心功能】透過純 CSS 判斷 APP 模式，實現零延遲隱藏安裝按鈕 */
+        @media all and (display-mode: standalone) {
+            #install-btn-container { display: none !important; }
         }
 
         header {
             background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: #fff;
-            padding: 10px;
-            font-size: 12px;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, .1)
+            color: #fff; padding: 10px; font-size: 12px; text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, .1); position: relative; z-index: 101;
         }
 
         .controls {
-            padding: 15px;
-            background: #fff;
+            padding: 15px; background: #fff;
             box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
-            position: sticky;
-            top: 0;
-            z-index: 100;
-            border-radius: 0 0 20px 20px;
-            border-bottom: 1px solid #eee
+            position: sticky; top: 0; z-index: 100;
+            border-radius: 0 0 20px 20px; border-bottom: 1px solid #eee;
         }
 
-        .flex-row {
-            display: flex;
-            gap: 10px;
-            margin-bottom: 10px
+        .flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
+
+        select, input[type="text"], input[type="number"], input[type="file"], textarea {
+            flex: 1; padding: 10px; border: 1px solid var(--border);
+            border-radius: 10px; font-size: 14px; background: #f8f9fa;
+            box-shadow: inset 0 2px 4px rgba(0, 0, 0, .04); transition: all .2s ease;
         }
 
-        select,
-        input[type="text"],
-        input[type="number"],
-        input[type="file"],
-        textarea {
-            flex: 1;
-            padding: 10px;
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            font-size: 14px;
-            background: #f8f9fa;
-            box-shadow: inset 0 2px 4px rgba(0, 0, 0, .04);
-            transition: all .2s ease
-        }
-
-        select:focus,
-        input[type="text"]:focus,
-        input[type="number"]:focus,
-        textarea:focus {
-            outline: 0;
-            border-color: var(--primary);
+        select:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+            outline: 0; border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(0, 159, 227, .2), inset 0 2px 4px rgba(0, 0, 0, .02);
-            background: #fff
+            background: #fff;
         }
 
         .keypad-active {
-            background: #eef7fc !important;
-            border-color: #b9d7ea !important;
-            box-shadow: 0 0 0 3px rgba(0, 159, 227, .2) !important
+            background: #eef7fc !important; border-color: #b9d7ea !important;
+            box-shadow: 0 0 0 3px rgba(0, 159, 227, .2) !important;
         }
 
         button {
-            padding: 10px 14px;
-            border: none;
-            border-radius: 12px;
-            cursor: pointer;
-            font-weight: 700;
-            font-size: 14px;
-            transition: all .15s ease;
-            transform: translateY(0);
-            position: relative
+            padding: 10px 14px; border: none; border-radius: 12px;
+            cursor: pointer; font-weight: 700; font-size: 14px;
+            transition: all .15s ease; transform: translateY(0); position: relative;
         }
 
-        button:active {
-            transform: translateY(3px);
-            box-shadow: 0 0 0 rgba(0, 0, 0, 0) !important
-        }
+        button:active { transform: translateY(3px); box-shadow: 0 0 0 rgba(0, 0, 0, 0) !important; }
 
-        .btn-primary {
-            background: linear-gradient(135deg, #00A8E8, var(--primary-dark));
-            color: #fff;
-            box-shadow: 0 4px 0 #006b9e, 0 5px 10px rgba(0, 122, 181, .3)
-        }
+        .btn-primary { background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: #fff; box-shadow: 0 4px 0 #006b9e, 0 5px 10px rgba(0, 122, 181, .3); }
+        .btn-install { background: linear-gradient(135deg, #00b894, #00cec9); color: #fff; box-shadow: 0 4px 0 #019074, 0 5px 10px rgba(0, 184, 148, .3); }
+        .btn-outline { background: #fff; border: 2px solid var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary), 0 4px 8px rgba(0, 0, 0, .05); padding: 8px 12px; }
+        .btn-danger { background: linear-gradient(135deg, #ff4757, #ff6b81); color: #fff; box-shadow: 0 4px 0 #c0392b, 0 5px 10px rgba(227, 0, 15, .2); }
 
-        .btn-install {
-            background: linear-gradient(135deg, #00b894, #00cec9);
-            color: #fff;
-            box-shadow: 0 4px 0 #019074, 0 5px 10px rgba(0, 184, 148, .3)
-        }
+        #card-stats { padding: 12px 20px 0; font-size: 13px; color: #7f8fa6; display: flex; justify-content: space-between; font-weight: 700; }
+        #card-container { padding: 15px 15px 20px 15px; min-height: calc(100vh - 170px); }
 
-        .btn-outline {
-            background: #fff;
-            border: 2px solid var(--primary);
-            color: var(--primary-dark);
-            box-shadow: 0 3px 0 var(--primary), 0 4px 8px rgba(0, 0, 0, .05);
-            padding: 8px 12px
-        }
-
-        .btn-danger {
-            background: linear-gradient(135deg, #ff4757, #ff6b81);
-            color: #fff;
-            box-shadow: 0 4px 0 #c0392b, 0 5px 10px rgba(227, 0, 15, .2)
-        }
-
-        #card-stats {
-            padding: 12px 20px 0;
-            font-size: 13px;
-            color: #7f8fa6;
-            display: flex;
-            justify-content: space-between;
-            font-weight: 700
-        }
-
-        #card-container {
-            padding: 15px 15px 20px 15px;
-            min-height: calc(100vh - 170px)
-        }
-
-        .list-view {
-            display: flex;
-            flex-direction: column;
-            gap: 20px
-        }
-
-        .stack-view {
-            position: relative;
-            padding-top: 10px
-        }
-
-        .stack-view .card-wrapper {
-            position: absolute;
-            width: calc(100% - 30px);
-            transition: all .4s cubic-bezier(.34, 1.56, .64, 1);
-            cursor: pointer
-        }
-
-        .stack-view .card-wrapper:not(.expanded) {
-            height: 65px;
-            overflow: hidden;
-            box-shadow: 0 -3px 8px rgba(0, 0, 0, .15);
-            transform: scale(.98)
-        }
-
-        .stack-view .card-wrapper.expanded {
-            position: relative;
-            z-index: 50;
-            margin-bottom: 25px;
-            box-shadow: 0 15px 35px rgba(0, 0, 0, .25);
-            transform: scale(1)
-        }
+        .list-view { display: flex; flex-direction: column; gap: 20px; }
+        .stack-view { position: relative; padding-top: 10px; }
+        .stack-view .card-wrapper { position: absolute; width: calc(100% - 30px); transition: all .4s cubic-bezier(.34, 1.56, .64, 1); cursor: pointer; }
+        .stack-view .card-wrapper:not(.expanded) { height: 65px; overflow: hidden; box-shadow: 0 -3px 8px rgba(0, 0, 0, .15); transform: scale(.98); }
+        .stack-view .card-wrapper.expanded { position: relative; z-index: 50; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0, 0, 0, .25); transform: scale(1); }
 
         .card {
-            border-radius: 18px;
-            padding: 20px;
-            color: #fff;
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 20px rgba(0, 0, 0, .15), inset 0 2px 2px rgba(255, 255, 255, .3), inset 0 -2px 5px rgba(0, 0, 0, .1);
-            min-height: 210px;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            border: 1px solid rgba(255, 255, 255, .1);
-            transition: all .3s ease
+            border-radius: 18px; padding: 20px; color: #fff; position: relative;
+            overflow: hidden; box-shadow: 0 10px 20px rgba(0, 0, 0, .15), inset 0 2px 2px rgba(255, 255, 255, .3), inset 0 -2px 5px rgba(0, 0, 0, .1);
+            min-height: 210px; display: flex; flex-direction: column; justify-content: space-between;
+            border: 1px solid rgba(255, 255, 255, .1); transition: all .3s ease;
         }
 
         .card::before {
-            content: '';
-            position: absolute;
-            top: 0;
-            left: -50%;
-            width: 200%;
-            height: 100%;
+            content: ''; position: absolute; top: 0; left: -50%; width: 200%; height: 100%;
             background: linear-gradient(to right, rgba(255, 255, 255, 0) 0%, rgba(255, 255, 255, .1) 50%, rgba(255, 255, 255, 0) 100%);
-            transform: skewX(-20deg);
-            animation: shine 6s infinite;
-            pointer-events: none
+            transform: skewX(-20deg); animation: shine 6s infinite; pointer-events: none;
         }
+        @keyframes shine { 0% { left: -150%; } 20% { left: 150%; } 100% { left: 150%; } }
 
-        @keyframes shine {
-            0% {
-                left: -150%
-            }
-            20% {
-                left: 150%
-            }
-            100% {
-                left: 150%
-            }
-        }
-
-        .card.cancelled {
-            filter: grayscale(80%) sepia(20%) brightness(.9);
-            opacity: .85
-        }
-
+        .card.cancelled { filter: grayscale(80%) sepia(20%) brightness(.9); opacity: .85; }
         .cancelled-stamp {
-            position: absolute;
-            top: 25px;
-            right: 15px;
-            border: 3px solid rgba(255, 71, 87, .9);
-            color: rgba(255, 71, 87, .9);
-            font-size: 16px;
-            font-weight: 900;
-            padding: 6px 12px;
-            transform: rotate(15deg);
-            border-radius: 8px;
-            z-index: 10;
-            background: rgba(255, 255, 255, .85);
-            pointer-events: none;
-            letter-spacing: 2px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .2);
-            text-shadow: none
+            position: absolute; top: 25px; right: 15px; border: 3px solid rgba(255, 71, 87, .9);
+            color: rgba(255, 71, 87, .9); font-size: 16px; font-weight: 900; padding: 6px 12px;
+            transform: rotate(15deg); border-radius: 8px; z-index: 10; background: rgba(255, 255, 255, .85);
+            pointer-events: none; letter-spacing: 2px; box-shadow: 0 4px 10px rgba(0, 0, 0, .2);
         }
 
-        .card-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-start;
-            font-size: 18px;
-            font-weight: 700;
-            text-shadow: 0 2px 4px rgba(0, 0, 0, .4)
-        }
-
-        .card-holder {
-            font-size: 14px;
-            font-weight: 400;
-            opacity: .9;
-            text-shadow: none;
-            margin-top: 4px
-        }
-
-        .card-body {
-            margin-top: 20px;
-            position: relative;
-            z-index: 2
-        }
-
-        .card-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 12px;
-            background: rgba(0, 0, 0, .25);
-            padding: 8px 12px;
-            border-radius: 10px;
-            box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2)
-        }
-
-        .card-label {
-            font-size: 12px;
-            opacity: .85
-        }
-
-        .card-value {
-            font-family: 'Courier New', Courier, monospace;
-            font-size: 17px;
-            letter-spacing: 1.5px;
-            font-weight: 700;
-            text-shadow: 0 1px 2px rgba(0, 0, 0, .3)
-        }
-
-        .org-logo {
-            position: absolute;
-            bottom: 15px;
-            right: 20px;
-            font-size: 26px;
-            font-weight: 900;
-            font-style: italic;
-            opacity: .8;
-            text-shadow: 0 2px 5px rgba(0, 0, 0, .4);
-            z-index: 1
-        }
+        .card-header { display: flex; justify-content: space-between; align-items: flex-start; font-size: 18px; font-weight: 700; text-shadow: 0 2px 4px rgba(0, 0, 0, .4); }
+        .card-holder { font-size: 14px; font-weight: 400; opacity: .9; text-shadow: none; margin-top: 4px; }
+        .card-body { margin-top: 20px; position: relative; z-index: 2; }
+        .card-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(0, 0, 0, .25); padding: 8px 12px; border-radius: 10px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2); }
+        .card-label { font-size: 12px; opacity: .85; }
+        .card-value { font-family: 'Courier New', Courier, monospace; font-size: 17px; letter-spacing: 1.5px; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
+        .org-logo { position: absolute; bottom: 15px; right: 20px; font-size: 26px; font-weight: 900; font-style: italic; opacity: .8; text-shadow: 0 2px 5px rgba(0, 0, 0, .4); z-index: 1; }
 
         .copy-btn {
-            background: rgba(255, 255, 255, .2);
-            border: 1px solid rgba(255, 255, 255, .3);
-            color: #fff;
-            padding: 6px 10px;
-            border-radius: 8px;
-            font-size: 12px;
-            cursor: pointer;
-            box-shadow: 0 2px 5px rgba(0, 0, 0, .1);
-            backdrop-filter: blur(4px)
+            background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .3);
+            color: #fff; padding: 6px 10px; border-radius: 8px; font-size: 12px; cursor: pointer;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, .1); backdrop-filter: blur(4px);
         }
+        .copy-btn:active { transform: translateY(2px); box-shadow: 0 0 2px rgba(0, 0, 0, .1); }
 
-        .copy-btn:active {
-            transform: translateY(2px);
-            box-shadow: 0 0 2px rgba(0, 0, 0, .1)
-        }
+        .action-row { display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 15px; gap: 8px; }
 
-        .action-row {
-            display: flex;
-            flex-wrap: wrap;
-            justify-content: space-between;
-            margin-top: 15px;
-            gap: 8px
-        }
-
-        .bank-中信 { background: linear-gradient(135deg, #00B4B5, #005051) }
-        .bank-國泰 { background: linear-gradient(135deg, #00B859, #8B9A00) }
-        .bank-台新 { background: linear-gradient(135deg, #FF4757, #C0392B) }
-        .bank-永豐 { background: linear-gradient(135deg, #B90025, #4A4A4A) }
-        .bank-遠東 { background: linear-gradient(135deg, #FF3F4A, #D99600) }
-        .bank-華南 { background: linear-gradient(135deg, #E71D36, #800010) }
-        .bank-聯邦 { background: linear-gradient(135deg, #00D261, #00602D) }
-        .bank-樂天 { background: linear-gradient(135deg, #FF1919, #BF0000) }
-        .bank-富邦 { background: linear-gradient(135deg, #00A8E8, #004A70) }
-        .bank-玉山 { background: linear-gradient(135deg, #00C85D, #8CC63F) }
-        .bank-彰化 { background: linear-gradient(135deg, #FF3344, #99000A) }
-        .bank-元大 { background: linear-gradient(135deg, #00509E, #E3000F) }
-        .bank-新光 { background: linear-gradient(135deg, #FF6B35, #C13F10) }
-        .bank-凱基 { background: linear-gradient(135deg, #FF9F43, #B35800) }
-        .bank-第一 { background: linear-gradient(135deg, #00875A, #003020) }
-        .bank-星展 { background: linear-gradient(135deg, #FF3F4A, #111111) }
-        .bank-LINEBank { background: linear-gradient(135deg, #2ECC71, #186A3B) }
-        .bank-匯豐 { background: linear-gradient(135deg, #E74C3C, #922B21) }
-        .bank-台銀 { background: linear-gradient(135deg, #8E44AD, #4A235A) }
-        .bank-土銀 { background: linear-gradient(135deg, #27AE60, #145A32) }
-        .bank-合庫 { background: linear-gradient(135deg, #2ECC71, #1D8348) }
-        .bank-兆豐 { background: linear-gradient(135deg, #E74C3C, #78281F) }
-        .bank-台企銀 { background: linear-gradient(135deg, #F39C12, #935116) }
-        .bank-上海 { background: linear-gradient(135deg, #E62E04, #871900) }
-        .bank-渣打 { background: linear-gradient(135deg, #3498DB, #154360) }
-        .bank-將來 { background: linear-gradient(135deg, #F1C40F, #9A7D0A) }
-        .bank-default { background: linear-gradient(135deg, #7F8FA6, #2F3640) }
+        /* Bank Colors */
+        .bank-中信 { background: linear-gradient(135deg, #00B4B5, #005051); }
+        .bank-國泰 { background: linear-gradient(135deg, #00B859, #8B9A00); }
+        .bank-台新 { background: linear-gradient(135deg, #FF4757, #C0392B); }
+        .bank-永豐 { background: linear-gradient(135deg, #B90025, #4A4A4A); }
+        .bank-遠東 { background: linear-gradient(135deg, #FF3F4A, #D99600); }
+        .bank-華南 { background: linear-gradient(135deg, #E71D36, #800010); }
+        .bank-聯邦 { background: linear-gradient(135deg, #00D261, #00602D); }
+        .bank-樂天 { background: linear-gradient(135deg, #FF1919, #BF0000); }
+        .bank-富邦 { background: linear-gradient(135deg, #00A8E8, #004A70); }
+        .bank-玉山 { background: linear-gradient(135deg, #00C85D, #8CC63F); }
+        .bank-彰化 { background: linear-gradient(135deg, #FF3344, #99000A); }
+        .bank-元大 { background: linear-gradient(135deg, #00509E, #E3000F); }
+        .bank-新光 { background: linear-gradient(135deg, #FF6B35, #C13F10); }
+        .bank-凱基 { background: linear-gradient(135deg, #FF9F43, #B35800); }
+        .bank-第一 { background: linear-gradient(135deg, #00875A, #003020); }
+        .bank-星展 { background: linear-gradient(135deg, #FF3F4A, #111111); }
+        .bank-LINEBank { background: linear-gradient(135deg, #2ECC71, #186A3B); }
+        .bank-匯豐 { background: linear-gradient(135deg, #E74C3C, #922B21); }
+        .bank-台銀 { background: linear-gradient(135deg, #8E44AD, #4A235A); }
+        .bank-土銀 { background: linear-gradient(135deg, #27AE60, #145A32); }
+        .bank-合庫 { background: linear-gradient(135deg, #2ECC71, #1D8348); }
+        .bank-兆豐 { background: linear-gradient(135deg, #E74C3C, #78281F); }
+        .bank-台企銀 { background: linear-gradient(135deg, #F39C12, #935116); }
+        .bank-上海 { background: linear-gradient(135deg, #E62E04, #871900); }
+        .bank-渣打 { background: linear-gradient(135deg, #3498DB, #154360); }
+        .bank-將來 { background: linear-gradient(135deg, #F1C40F, #9A7D0A); }
+        .bank-default { background: linear-gradient(135deg, #7F8FA6, #2F3640); }
 
         .modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: #fdfdfd;
-            z-index: 1000;
-            overflow-y: auto;
-            padding-bottom: 300px;
-            animation: fadeIn .2s ease
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: #fdfdfd; z-index: 1000; overflow-y: auto; padding-bottom: 300px;
+            animation: fadeIn .2s ease;
         }
-
-        @keyframes fadeIn {
-            from {
-                opacity: 0;
-                transform: scale(.98)
-            }
-            to {
-                opacity: 1;
-                transform: scale(1)
-            }
-        }
+        @keyframes fadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
 
         .modal-header {
-            padding: 18px 20px;
-            background: linear-gradient(135deg, #00A8E8, var(--primary-dark));
-            color: #fff;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            position: sticky;
-            top: 0;
-            z-index: 10;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
-            border-radius: 0 0 20px 20px;
-            margin-bottom: 10px
+            padding: 18px 20px; background: linear-gradient(135deg, #00A8E8, var(--primary-dark));
+            color: #fff; display: flex; justify-content: space-between; align-items: center;
+            position: sticky; top: 0; z-index: 10; box-shadow: 0 4px 10px rgba(0, 0, 0, .1);
+            border-radius: 0 0 20px 20px; margin-bottom: 10px;
         }
 
-        .form-group {
-            padding: 12px 20px
-        }
-
-        .form-group label {
-            display: block;
-            margin-bottom: 8px;
-            font-size: 14px;
-            font-weight: 700;
-            color: #34495e
-        }
-
-        .reward-section {
-            background: #fdfefe;
-            padding: 16px;
-            border-radius: 16px;
-            border: 1px solid #dcdde1;
-            margin: 15px 20px;
-            box-shadow: 0 4px 10px rgba(0, 0, 0, .03)
-        }
-
-        .tier-row {
-            display: flex;
-            gap: 8px;
-            margin-bottom: 10px;
-            align-items: center
-        }
-
-        .tier-row input {
-            padding: 8px !important;
-            font-size: 14px !important
-        }
+        .form-group { padding: 12px 20px; }
+        .form-group label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; color: #34495e; }
+        .reward-section { background: #fdfefe; padding: 16px; border-radius: 16px; border: 1px solid #dcdde1; margin: 15px 20px; box-shadow: 0 4px 10px rgba(0, 0, 0, .03); }
+        .tier-row { display: flex; gap: 8px; margin-bottom: 10px; align-items: center; }
+        .tier-row input { padding: 8px !important; font-size: 14px !important; }
 
         .popup-modal {
-            display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(44, 62, 80, .7);
-            z-index: 1200;
-            align-items: center;
-            justify-content: center;
-            padding: 20px;
-            backdrop-filter: blur(3px)
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(44, 62, 80, .7); z-index: 1200; align-items: center;
+            justify-content: center; padding: 20px; backdrop-filter: blur(3px);
         }
 
         .popup-content {
-            background: #fff;
-            width: 100%;
-            max-width: 400px;
-            border-radius: 24px;
-            overflow: hidden;
-            box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
+            background: #fff; width: 100%; max-width: 400px; border-radius: 24px;
+            overflow: hidden; box-shadow: 0 20px 50px rgba(0, 0, 0, .3);
             animation: bounceUp .4s cubic-bezier(.175, .885, .32, 1.275);
-            display: flex;
-            flex-direction: column;
-            max-height: 90vh
+            display: flex; flex-direction: column; max-height: 90vh;
         }
 
-        @keyframes bounceUp {
-            from {
-                transform: translateY(40px) scale(.9);
-                opacity: 0
-            }
-            to {
-                transform: translateY(0) scale(1);
-                opacity: 1
-            }
-        }
+        @keyframes bounceUp { from { transform: translateY(40px) scale(.9); opacity: 0; } to { transform: translateY(0) scale(1); opacity: 1; } }
 
-        .expense-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 10px;
-            border-bottom: 1px solid #eee
-        }
-
-        .expense-item:last-child {
-            border-bottom: none
-        }
-
-        .expense-info {
-            flex: 1
-        }
-
-        .expense-date {
-            font-size: 11px;
-            color: #7f8c8d
-        }
-
-        .expense-note-text {
-            font-size: 12px;
-            color: #95a5a6;
-            margin-top: 2px
-        }
-
-        .expense-amt {
-            font-size: 16px;
-            font-weight: 700;
-            color: var(--primary-dark);
-            margin-right: 10px
-        }
-
-        .expense-actions button {
-            padding: 4px 8px;
-            font-size: 12px;
-            margin-left: 5px;
-            box-shadow: none
-        }
+        .expense-item { display: flex; justify-content: space-between; align-items: center; padding: 10px; border-bottom: 1px solid #eee; }
+        .expense-item:last-child { border-bottom: none; }
+        .expense-info { flex: 1; }
+        .expense-date { font-size: 11px; color: #7f8c8d; }
+        .expense-note-text { font-size: 12px; color: #95a5a6; margin-top: 2px; }
+        .expense-amt { font-size: 16px; font-weight: 700; color: var(--primary-dark); margin-right: 10px; }
+        .expense-actions button { padding: 4px 8px; font-size: 12px; margin-left: 5px; box-shadow: none; }
 
         #virtual-keypad {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: #e2e6eb;
-            padding: 20px 15px 30px 15px;
-            display: none;
-            grid-template-columns: repeat(3, 1fr);
-            gap: 12px;
-            z-index: 1500;
-            box-shadow: 0 -10px 30px rgba(0, 0, 0, .15);
-            border-radius: 24px 24px 0 0;
-            border-top: 1px solid #fff
+            position: fixed; bottom: 0; left: 0; width: 100%; background: #e2e6eb;
+            padding: 20px 15px 30px 15px; display: none; grid-template-columns: repeat(3, 1fr);
+            gap: 12px; z-index: 1500; box-shadow: 0 -10px 30px rgba(0, 0, 0, .15);
+            border-radius: 24px 24px 0 0; border-top: 1px solid #fff;
         }
 
         .key {
-            background: #fff;
-            border: none;
-            padding: 18px 10px;
-            font-size: 26px;
-            font-weight: 700;
-            color: #2c3e50;
-            border-radius: 14px;
-            box-shadow: 0 5px 0 #b2bec3, 0 6px 10px rgba(0, 0, 0, .1);
-            cursor: pointer;
-            transition: all .1s ease;
-            transform: translateY(0)
+            background: #fff; border: none; padding: 18px 10px; font-size: 26px;
+            font-weight: 700; color: #2c3e50; border-radius: 14px;
+            box-shadow: 0 5px 0 #b2bec3, 0 6px 10px rgba(0, 0, 0, .1); cursor: pointer; transition: all .1s ease;
         }
+        .key:active { box-shadow: 0 0 0 #b2bec3, 0 2px 4px rgba(0, 0, 0, .1) !important; transform: translateY(5px); background: #f1f2f6; }
+        .key-action { background: #7f8fa6; color: #fff; box-shadow: 0 5px 0 #576574, 0 6px 10px rgba(0, 0, 0, .1); font-size: 18px; }
+        .key-action:active { background: #718093; box-shadow: 0 0 0 #576574 !important; transform: translateY(5px); }
+        .key-close { background: linear-gradient(135deg, #00A8E8, var(--primary-dark)); color: #fff; grid-column: span 3; box-shadow: 0 5px 0 #005f8d, 0 6px 10px rgba(0, 0, 0, .15); font-size: 18px; letter-spacing: 2px; }
+        .key-close:active { box-shadow: 0 0 0 #005f8d !important; transform: translateY(5px); }
 
-        .key:active {
-            box-shadow: 0 0 0 #b2bec3, 0 2px 4px rgba(0, 0, 0, .1) !important;
-            transform: translateY(5px);
-            background: #f1f2f6
-        }
-
-        .key-action {
-            background: #7f8fa6;
-            color: #fff;
-            box-shadow: 0 5px 0 #576574, 0 6px 10px rgba(0, 0, 0, .1);
-            font-size: 18px
-        }
-
-        .key-action:active {
-            background: #718093;
-            box-shadow: 0 0 0 #576574 !important;
-            transform: translateY(5px)
-        }
-
-        .key-close {
-            background: linear-gradient(135deg, #00A8E8, var(--primary-dark));
-            color: #fff;
-            grid-column: span 3;
-            box-shadow: 0 5px 0 #005f8d, 0 6px 10px rgba(0, 0, 0, .15);
-            font-size: 18px;
-            letter-spacing: 2px
-        }
-
-        .key-close:active {
-            box-shadow: 0 0 0 #005f8d !important;
-            transform: translateY(5px)
-        }
-
-        @keyframes pulse {
-            0% {
-                box-shadow: 0 0 0 0 rgba(0, 184, 148, .7)
-            }
-            70% {
-                box-shadow: 0 0 0 10px rgba(0, 184, 148, 0)
-            }
-            100% {
-                box-shadow: 0 0 0 0 rgba(0, 184, 148, 0)
-            }
-        }
-
-        .pulse-animation {
-            animation: pulse 2s infinite
-        }
+        .pulse-animation { animation: pulse 2s infinite; }
+        @keyframes pulse { 0% { box-shadow: 0 0 0 0 rgba(0, 184, 148, .7); } 70% { box-shadow: 0 0 0 10px rgba(0, 184, 148, 0); } 100% { box-shadow: 0 0 0 0 rgba(0, 184, 148, 0); } }
 
         .expiry-btn {
-            background: #fff;
-            border: 2px solid #d1d8e0;
-            padding: 10px 0;
-            font-size: 15px;
-            font-weight: 700;
-            color: #7f8c8d;
-            border-radius: 10px;
-            box-shadow: 0 3px 0 #b2bec3;
-            cursor: pointer;
-            transition: all .1s ease;
-            text-align: center
+            background: #fff; border: 2px solid #d1d8e0; padding: 10px 0; font-size: 15px;
+            font-weight: 700; color: #7f8c8d; border-radius: 10px; box-shadow: 0 3px 0 #b2bec3;
+            cursor: pointer; transition: all .1s ease; text-align: center;
         }
-
-        .expiry-btn:active {
-            box-shadow: 0 0 0 #b2bec3 !important;
-            transform: translateY(3px);
-            background: #f1f2f6
-        }
-
-        .expiry-btn.active {
-            background: #eef7fc;
-            border-color: var(--primary);
-            color: var(--primary-dark);
-            box-shadow: 0 3px 0 var(--primary)
-        }
-
-        .expiry-btn.active:active {
-            box-shadow: 0 0 0 var(--primary) !important;
-            transform: translateY(3px)
-        }
+        .expiry-btn:active { box-shadow: 0 0 0 #b2bec3 !important; transform: translateY(3px); background: #f1f2f6; }
+        .expiry-btn.active { background: #eef7fc; border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary); }
     </style>
 </head>
 
 <body>
-    <header style="display:flex;justify-content:center;align-items:center;background:linear-gradient(135deg,#2c3e50,#34495e);color:#fff;padding:10px 15px;box-shadow:0 2px 4px rgba(0,0,0,.1);position:relative;z-index:101">
-        <div id="backup-status" style="font-size:12px;opacity:.9">✅ 最新自動備份：尚未備份</div>
+    <header>
+        <div id="backup-status" style="opacity:.9">✅ 最新自動備份：尚未備份</div>
     </header>
 
     <div class="controls">
@@ -630,9 +236,7 @@
             <input type="text" id="search-input" oninput="renderCards()" placeholder="🔍 搜尋名稱、號碼末四碼、備註..." style="border-radius:15px; padding-left:15px; font-weight:bold;">
         </div>
         <div class="flex-row">
-            <select id="filter-bank" onchange="renderCards()">
-                <option value="All">全部銀行</option>
-            </select>
+            <select id="filter-bank" onchange="renderCards()"><option value="All">全部銀行</option></select>
             <select id="filter-holder" onchange="renderCards()">
                 <option value="All">全部持卡人</option>
                 <option value="宏和">宏和</option>
@@ -644,9 +248,10 @@
             <button class="btn-primary" style="flex:2" onclick="openModal()">➕ 新增卡片</button>
             <button class="btn-outline" style="flex:1;border-width:1px" onclick="openSettings()">⚙️ 設定</button>
         </div>
+        <!-- 安裝按鈕：若已安裝，CSS 會直接將此區塊 display:none -->
         <div class="flex-row" style="margin-bottom:0" id="install-btn-container">
             <button id="install-top-btn" class="btn-install pulse-animation" style="flex:1;display:flex;justify-content:center;align-items:center;gap:8px;font-size:15px;padding:12px" onclick="handleInstallClick()">
-                <span style="font-size:18px">📱</span> <span style="letter-spacing:1px">安裝為手機桌面 APP (離線使用)</span>
+                <span style="font-size:18px">📱</span> <span style="letter-spacing:1px">安裝為桌面 APP (離線使用)</span>
             </button>
         </div>
     </div>
@@ -658,7 +263,7 @@
     <div id="settings-modal" class="modal">
         <div class="modal-header">
             <h3 style="margin:0">程式設定</h3>
-            <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closeSettings()">✖</button>
+            <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closeSettings()">✖</button>
         </div>
         <div class="form-group" style="margin-top:10px">
             <label>資料備份與匯出</label>
@@ -678,25 +283,30 @@
         </div>
     </div>
 
-    <!-- 安裝教學 Modal -->
+    <!-- 智慧型安裝教學 Modal -->
     <div id="install-modal" class="popup-modal">
         <div class="popup-content" style="max-width:320px">
             <div class="modal-header" style="padding:15px 20px;border-radius:0">
                 <h4 style="margin:0;font-size:18px">📱 安裝成手機 APP</h4>
-                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('install-modal')">✖</button>
+                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('install-modal')">✖</button>
             </div>
             <div style="padding:20px;background:#fdfdfd;line-height:1.6;color:#2c3e50;font-size:15px">
-                <p style="margin-top:0;font-size:14px;color:#7f8c8d">因部分手機限制，若系統未自動跳出安裝提示，請依照下方步驟手動加入主畫面：</p>
-                <div style="background:#f4f6f8;padding:12px;border-radius:10px;margin-bottom:15px;border-left:4px solid #00A8E8;box-shadow:0 2px 5px rgba(0,0,0,.02)">
+                <p style="margin-top:0;font-size:14px;color:#7f8c8d">因系統限制未自動跳出提示，請依照下方步驟手動加入主畫面：</p>
+                
+                <!-- iOS 教學 (透過JS控制顯示隱藏) -->
+                <div id="guide-ios" style="display:none; background:#f4f6f8;padding:12px;border-radius:10px;margin-bottom:15px;border-left:4px solid #00A8E8;box-shadow:0 2px 5px rgba(0,0,0,.02)">
                     <strong style="display:block;margin-bottom:5px;color:#34495e">🍎 蘋果 iOS (Safari)</strong>
                     1. 點選瀏覽器下方的「分享」圖示 <span style="font-size:18px">📤</span><br>
                     2. 往下滑動，點選<strong>「加入主畫面」</strong><span style="font-size:18px">➕</span>
                 </div>
-                <div style="background:#f4f6f8;padding:12px;border-radius:10px;border-left:4px solid #2ecc71;box-shadow:0 2px 5px rgba(0,0,0,.02)">
-                    <strong style="display:block;margin-bottom:5px;color:#34495e">🤖 安卓 Android (Chrome)</strong>
+                
+                <!-- Android/PC 教學 (透過JS控制顯示隱藏) -->
+                <div id="guide-android" style="display:none; background:#f4f6f8;padding:12px;border-radius:10px;border-left:4px solid #2ecc71;box-shadow:0 2px 5px rgba(0,0,0,.02)">
+                    <strong style="display:block;margin-bottom:5px;color:#34495e">🤖 安卓 / 其他 (Chrome)</strong>
                     1. 點選瀏覽器右上角的「選單」圖示 <span style="font-size:18px">⋮</span><br>
                     2. 點選<strong>「加到主畫面」</strong>或<strong>「安裝應用程式」</strong>
                 </div>
+
                 <button class="btn-primary" style="width:100%;margin-top:15px;padding:12px;box-shadow:0 3px 0 #005f8d" onclick="closePopupModal('install-modal')">我知道了</button>
             </div>
         </div>
@@ -707,7 +317,7 @@
         <div class="popup-content">
             <div class="modal-header" style="padding:15px 20px;border-radius:0;flex-shrink:0">
                 <h4 style="margin:0;font-size:18px" id="view-note-title">卡片備註</h4>
-                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('view-note-modal')">✖</button>
+                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('view-note-modal')">✖</button>
             </div>
             <div id="view-note-content" style="padding:25px;color:#2c3e50;line-height:1.6;white-space:pre-wrap;word-break:break-all;overflow-y:auto;font-size:15px"></div>
         </div>
@@ -718,7 +328,7 @@
         <div class="popup-content">
             <div class="modal-header" style="padding:15px 20px;border-radius:0;flex-shrink:0">
                 <h4 style="margin:0;font-size:18px" id="expense-title">記帳與明細</h4>
-                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('expense-modal')">✖</button>
+                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('expense-modal')">✖</button>
             </div>
             <div style="padding:20px;flex-shrink:0;border-bottom:1px solid #eee;background:#fcfcfc">
                 <input type="hidden" id="expense-card-id">
@@ -726,7 +336,7 @@
                 <div style="display:flex;gap:10px;align-items:center;margin-bottom:10px">
                     <div style="flex:2;position:relative;display:flex;align-items:center">
                         <input type="text" id="expense-amount" oninput="handleInput(this)" placeholder="輸入金額" style="width:100%;padding:12px 12px 12px 45px;font-size:20px;font-weight:700;color:var(--primary-dark);text-align:right">
-                        <span onclick="openKeypad('expense-amount')" style="position:absolute;left:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.1),0 1px 1px rgba(255,255,255,.8)" title="開啟數字鍵盤">⌨️</span>
+                        <span onclick="openKeypad('expense-amount')" style="position:absolute;left:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1)">⌨️</span>
                     </div>
                     <button class="btn-primary" id="btn-save-expense" style="flex:1;padding:12px;box-shadow:0 3px 0 #005f8d" onclick="saveExpense()">💾 儲存</button>
                 </div>
@@ -744,7 +354,7 @@
         <div class="popup-content" style="max-width:360px">
             <div class="modal-header" style="padding:15px 20px;border-radius:0;flex-shrink:0">
                 <h4 style="margin:0;font-size:18px">選擇到期日</h4>
-                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('expiry-modal')">✖</button>
+                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('expiry-modal')">✖</button>
             </div>
             <div style="padding:20px;background:#f4f6f8">
                 <div style="display:flex;gap:15px">
@@ -772,7 +382,7 @@
     <div id="form-modal" class="modal">
         <div class="modal-header">
             <h3 id="modal-title" style="margin:0">新增卡片</h3>
-            <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;display:flex;align-items:center;justify-content:center;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closeModal()">✖</button>
+            <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closeModal()">✖</button>
         </div>
         <input type="hidden" id="card-id">
         <div class="form-group flex-row" style="padding:12px 20px 0 20px">
@@ -806,8 +416,8 @@
         <div class="form-group">
             <label>信用卡號 (16碼)</label>
             <div style="position:relative;display:flex;align-items:center">
-                <input type="text" id="card-no" oninput="handleInput(this)" placeholder="輸入卡號 (可按右側 ⌨️ 開啟數字鍵盤)" style="width:100%;padding-right:40px;letter-spacing:2px;font-family:monospace;font-size:18px">
-                <span onclick="openKeypad('card-no')" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.1),0 1px 1px rgba(255,255,255,.8)" title="開啟數字鍵盤">⌨️</span>
+                <input type="text" id="card-no" oninput="handleInput(this)" placeholder="輸入卡號" style="width:100%;padding-right:40px;letter-spacing:2px;font-family:monospace;font-size:18px">
+                <span onclick="openKeypad('card-no')" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1)">⌨️</span>
             </div>
         </div>
         <div class="form-group flex-row" style="padding:0">
@@ -815,15 +425,15 @@
                 <label>到期日 (MMYY)</label>
                 <div style="position:relative;display:flex;align-items:center">
                     <input type="text" id="card-expiry" oninput="handleInput(this)" placeholder="例如: 1228" style="width:100%;padding-right:75px;font-family:monospace;font-size:18px">
-                    <span onclick="openKeypad('card-expiry')" style="position:absolute;right:42px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.1),0 1px 1px rgba(255,255,255,.8)" title="開啟數字鍵盤">⌨️</span>
-                    <span onclick="openExpiryPicker()" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.1),0 1px 1px rgba(255,255,255,.8)" title="開啟日期選擇器">📅</span>
+                    <span onclick="openKeypad('card-expiry')" style="position:absolute;right:42px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1)">⌨️</span>
+                    <span onclick="openExpiryPicker()" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1)">📅</span>
                 </div>
             </div>
             <div style="flex:1;padding:10px 20px 10px 0">
                 <label>驗證碼 (3碼)</label>
                 <div style="position:relative;display:flex;align-items:center">
                     <input type="text" id="card-cvv" oninput="handleInput(this)" placeholder="例如: 123" style="width:100%;padding-right:40px;font-family:monospace;font-size:18px">
-                    <span onclick="openKeypad('card-cvv')" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.1),0 1px 1px rgba(255,255,255,.8)" title="開啟數字鍵盤">⌨️</span>
+                    <span onclick="openKeypad('card-cvv')" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1)">⌨️</span>
                 </div>
             </div>
         </div>
@@ -860,7 +470,7 @@
                 <label>票證號碼 (16碼)</label>
                 <div style="position:relative;display:flex;align-items:center">
                     <input type="text" id="card-eticket" oninput="handleInput(this)" placeholder="若無可留白" style="width:100%;padding-right:40px;font-family:monospace">
-                    <span onclick="openKeypad('card-eticket')" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1);box-shadow:inset 0 1px 3px rgba(0,0,0,.1),0 1px 1px rgba(255,255,255,.8)" title="開啟數字鍵盤">⌨️</span>
+                    <span onclick="openKeypad('card-eticket')" style="position:absolute;right:8px;cursor:pointer;z-index:10;font-size:18px;padding:6px;border-radius:8px;background:rgba(0,159,227,.1)">⌨️</span>
                 </div>
             </div>
         </div>
@@ -894,25 +504,18 @@
     <script>
         let deferredPrompt = null;
 
-        // 【駭客級別】單檔 PWA 虛擬化註冊機制
+        // 【駭客級別】單檔 PWA 註冊與路徑清理
         function setupPWA() {
             let iconUrl = "icon.png";
             try {
-                let base = window.location.href;
-                if (base.startsWith('blob:') || base.startsWith('data:')) {
-                    base = window.location.origin + '/';
-                }
-                iconUrl = new URL("icon.png", base).href;
-            } catch (e) {
-                iconUrl = "icon.png";
-            }
+                // 精簡路徑轉換邏輯
+                const isVirtual = window.location.href.startsWith('blob:') || window.location.href.startsWith('data:');
+                iconUrl = new URL("icon.png", isVirtual ? window.location.origin + '/' : window.location.href).href;
+            } catch (e) { }
             
             const m = {
-                name: "信用卡夾",
-                short_name: "信用卡夾",
-                display: "standalone",
-                background_color: "#f4f6f8",
-                theme_color: "#333333",
+                name: "信用卡夾", short_name: "信用卡夾", display: "standalone",
+                background_color: "#f4f6f8", theme_color: "#333333",
                 icons: [
                     { src: iconUrl, sizes: "192x192 512x512", type: "image/png", purpose: "any maskable" },
                     { src: "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='20' fill='%23009FE3'/%3E%3Ctext x='50' y='65' font-size='50' font-weight='bold' font-family='sans-serif' text-anchor='middle' fill='%23ffffff'%3E卡%3C/text%3E%3C/svg%3E", sizes: "512x512", type: "image/svg+xml" }
@@ -920,8 +523,7 @@
                 start_url: window.location.href
             };
             
-            const l = document.createElement('link');
-            l.rel = 'manifest';
+            const l = document.createElement('link'); l.rel = 'manifest';
             l.href = URL.createObjectURL(new Blob([JSON.stringify(m)], { type: 'application/json' }));
             document.head.appendChild(l);
             
@@ -938,51 +540,56 @@
         let isListView = true;
         let activeInputId = null;
         let currentEditingTiers = [];
-        let tempSelectedMonth = '';
-        let tempSelectedYear = '';
-        let currentYearPageStart = 0;
+        let tempSelectedMonth = '', tempSelectedYear = '', currentYearPageStart = 0;
 
+        // 【PWA】攔截原生安裝事件
         window.addEventListener('beforeinstallprompt', (e) => {
-            e.preventDefault();
-            deferredPrompt = e;
+            e.preventDefault(); deferredPrompt = e;
             const btn = document.getElementById('install-top-btn');
             if (btn) btn.classList.add('pulse-animation');
         });
 
+        // 【PWA】智慧型安裝判斷與彈窗
         function handleInstallClick() {
             if (deferredPrompt) {
+                // Android 系統直接觸發原生彈窗
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
-                    deferredPrompt = null;
-                    const btn = document.getElementById('install-top-btn');
-                    if (btn) {
-                        btn.classList.remove('pulse-animation');
+                    // 若同意安裝，則立即隱藏按鈕 (修正了不論取消都隱藏的 Bug)
+                    if (choiceResult.outcome === 'accepted') {
                         document.getElementById('install-btn-container').style.display = 'none';
                     }
+                    deferredPrompt = null;
+                    document.getElementById('install-top-btn').classList.remove('pulse-animation');
                 });
             } else {
+                // 如果無法觸發原生彈窗，偵測作業系統以顯示相對應的教學
+                const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent)) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+                document.getElementById('guide-ios').style.display = isIOS ? 'block' : 'none';
+                document.getElementById('guide-android').style.display = isIOS ? 'none' : 'block';
                 document.getElementById('install-modal').style.display = 'flex';
             }
         }
 
+        // 監聽安裝完成事件，強制隱藏按鈕
         window.addEventListener('appinstalled', () => {
             const container = document.getElementById('install-btn-container');
             if (container) container.style.display = 'none';
         });
 
         window.onload = () => {
-            const bankSelect = document.getElementById('card-bank');
-            const filterBank = document.getElementById('filter-bank');
-            BANKS.forEach(bank => {
-                bankSelect.innerHTML += `<option value="${bank}">${bank}</option>`;
-                filterBank.innerHTML += `<option value="${bank}">${bank}</option>`;
-            });
+            // 【優化】將迴圈內反覆操作 DOM 轉為一次性組合渲染
+            const bankOptsHTML = BANKS.map(b => `<option value="${b}">${b}</option>`).join('');
+            document.getElementById('card-bank').innerHTML += bankOptsHTML;
+            document.getElementById('filter-bank').innerHTML += bankOptsHTML;
             
+            // 雙重保險：除了純 CSS 以外，加入 JS 端 APP 模式判定隱藏
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
                 const container = document.getElementById('install-btn-container');
                 if (container) container.style.display = 'none';
             }
             
+            // 舊版資料結構移轉與修補
             let migrated = false;
             cards.forEach(card => {
                 if (card.bank === '中國信託') { card.bank = '中信'; migrated = true; }
@@ -990,7 +597,7 @@
                 if (!card.status) { card.status = 'active'; migrated = true; }
                 if (!card.expenses) { card.expenses = []; migrated = true; }
                 if (card.currentSpend !== undefined && card.expenses.length === 0) {
-                    card.expenses.push({ id: generateId(), timestamp: new Date().getTime(), amount: card.currentSpend, note: '期初結轉' });
+                    card.expenses.push({ id: generateId(), timestamp: Date.now(), amount: card.currentSpend, note: '期初結轉' });
                     migrated = true;
                 }
                 delete card.currentSpend;
@@ -1006,14 +613,17 @@
         const formatCC = (num) => num ? num.replace(/(.{4})/g, '$1-').replace(/-$/, '') : '';
         const formatExpiryDisplay = (num) => num && num.length === 4 ? `${num.substring(0, 2)}/${num.substring(2, 4)}` : num;
         const generateId = () => Date.now().toString(36) + Math.random().toString(36).substr(2);
+        
         const getTimestampStr = () => {
             const d = new Date();
             return `${d.getFullYear()}${padNum(d.getMonth() + 1)}${padNum(d.getDate())}_${padNum(d.getHours())}${padNum(d.getMinutes())}`;
         };
+        
         const formatDate = (ts) => {
             const d = new Date(ts);
             return `${d.getFullYear()}/${padNum(d.getMonth() + 1)}/${padNum(d.getDate())} ${padNum(d.getHours())}:${padNum(d.getMinutes())}`;
         };
+        
         const detectHolder = (name) => {
             if (name.includes('宏和')) return '宏和';
             if (name.includes('瑋淨')) return '瑋淨';
@@ -1022,8 +632,7 @@
 
         function linkify(text) {
             if (!text) return '';
-            const urlRegex = /(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig;
-            return text.replace(urlRegex, url => `<a href="${url}" target="_blank" style="color: #ffdd59; text-decoration: underline; font-weight: bold; text-shadow: 0 1px 2px rgba(0,0,0,0.2);">${url}</a>`);
+            return text.replace(/(\b(https?|ftp|file):\/\/[-A-Z0-9+&@#\/%?=~_|!:,.;]*[-A-Z0-9+&@#\/%=~_|])/ig, url => `<a href="${url}" target="_blank" style="color: #ffdd59; text-decoration: underline; font-weight: bold;">${url}</a>`);
         }
 
         function getCardData(id) {
@@ -1080,55 +689,26 @@
             const filterB = document.getElementById('filter-bank').value;
             const filterH = document.getElementById('filter-holder').value;
             
-            // 取得搜尋欄文字並處理
             const searchInputEl = document.getElementById('search-input');
             const searchTerm = searchInputEl ? searchInputEl.value.toLowerCase() : '';
-            const searchCleanNum = searchTerm.replace(/\D/g, ''); // 專門留給卡號比對用（忽略空格或-）
+            const searchCleanNum = searchTerm.replace(/\D/g, ''); 
 
-            const statsDiv = document.getElementById('card-stats');
-            
             container.innerHTML = '';
             
-            // 進行複合過濾 (銀行 + 持卡人 + 搜尋關鍵字)
             let filtered = cards.filter(c => {
-                // 1. 判斷下拉選單條件
-                const matchDropdowns = (filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH);
-                if (!matchDropdowns) return false;
-
-                // 2. 若無搜尋字詞，直接放行
+                if (!((filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH))) return false;
                 if (searchTerm === '') return true;
 
-                // 3. 判斷搜尋條件 (文字比對)
-                const nameMatch = (c.name || '').toLowerCase().includes(searchTerm);
-                const bankMatch = (c.bank || '').toLowerCase().includes(searchTerm);
-                const holderMatch = (c.holder || '').toLowerCase().includes(searchTerm);
-                const orgMatch = (c.org || '').toLowerCase().includes(searchTerm);
-                const noteMatch = (c.note || '').toLowerCase().includes(searchTerm);
+                const t = (c.name||'') + (c.bank||'') + (c.holder||'') + (c.org||'') + (c.note||'');
+                if (t.toLowerCase().includes(searchTerm)) return true;
 
-                // 4. 判斷搜尋條件 (號碼比對：清除原有卡號的橫線/空格)
-                const noClean = (c.no || '').replace(/\D/g, '');
-                const eticketClean = (c.eticket || '').replace(/\D/g, '');
-                
-                const noMatch = searchCleanNum !== '' && noClean.includes(searchCleanNum);
-                const eticketMatch = searchCleanNum !== '' && eticketClean.includes(searchCleanNum);
-
-                // 只要滿足任一搜尋條件即可
-                return nameMatch || bankMatch || holderMatch || orgMatch || noteMatch || noMatch || eticketMatch;
+                const numSearch = searchCleanNum !== '' && ( ((c.no||'').replace(/\D/g, '').includes(searchCleanNum)) || ((c.eticket||'').replace(/\D/g, '').includes(searchCleanNum)) );
+                return numSearch;
             });
             
-            filtered.sort((a, b) => {
-                const statusA = a.status || 'active';
-                const statusB = b.status || 'active';
-                if (statusA === statusB) return 0;
-                return statusA === 'active' ? -1 : 1;
-            });
+            filtered.sort((a, b) => (a.status || 'active') === (b.status || 'active') ? 0 : ((a.status || 'active') === 'active' ? -1 : 1));
             
-            const activeCount = filtered.filter(c => (c.status || 'active') === 'active').length;
-            const cancelledCount = filtered.filter(c => c.status === 'cancelled').length;
-            
-            if (statsDiv) {
-                statsDiv.innerHTML = `<span>💳 共計: ${filtered.length} 張</span><span>🟢 有效: ${activeCount} | ✂️ 已剪卡: ${cancelledCount}</span>`;
-            }
+            document.getElementById('card-stats').innerHTML = `<span>💳 共計: ${filtered.length} 張</span><span>🟢 有效: ${filtered.filter(c => (c.status || 'active') === 'active').length} | ✂️ 已剪卡: ${filtered.filter(c => c.status === 'cancelled').length}</span>`;
             
             if (filtered.length === 0) {
                 container.innerHTML = '<div style="text-align:center; margin-top:60px; color:#7f8fa6; font-size:16px;">📭 目前沒有相符的卡片</div>';
@@ -1140,36 +720,41 @@
             filtered.forEach((card, index) => {
                 const wrapper = document.createElement('div');
                 wrapper.className = 'card-wrapper';
-                if (!isListView) {
-                    wrapper.style.top = `${index * 48}px`;
-                    wrapper.style.zIndex = index;
-                }
+                if (!isListView) { wrapper.style.top = `${index * 48}px`; wrapper.style.zIndex = index; }
                 
                 const isCancelled = card.status === 'cancelled';
-                const cancelledClass = isCancelled ? ' cancelled' : '';
-                const cancelledStampHtml = isCancelled ? `<div class="cancelled-stamp">✂️ 已剪卡</div>` : '';
-                
-                const eTicketHtml = card.etype !== '無' ? `<div class="card-row"><div><span class="card-label">${card.etype}：</span><span class="card-value">${formatCC(card.eticket)}</span></div><button class="copy-btn" onclick="copyText('${card.eticket}', event)">複製</button></div>` : '';
-                const noteBtnHtml = card.note ? `<button class="copy-btn" style="background:rgba(255,255,255,0.25); padding:8px 12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openNoteModal('${card.id}', event)">📝 備註</button>` : '';
-                const expenseBtnHtml = `<button class="copy-btn" style="background:rgba(255,255,255,0.25); padding:8px 12px; font-weight:bold; box-shadow: 0 2px 4px rgba(0,0,0,0.1);" onclick="openExpenseModal('${card.id}', event)">💵 記帳明細</button>`;
-                
                 const cycle = getCycleInfo(card);
                 const cycleStr = `${padNum(cycle.start.getMonth() + 1)}/${padNum(cycle.start.getDate())} - ${padNum(cycle.end.getMonth() + 1)}/${padNum(cycle.end.getDate())}`;
                 const currentSpend = calculateCurrentSpend(card, cycle);
                 
-                let spendProgressHtml = '';
+                let spendHtml = '';
                 if (card.tiers && card.tiers.length > 0) {
                     let rInfo = calculateReward(currentSpend, card.tiers);
-                    let limitDisplay = rInfo.maxLimit === null ? '無上限' : formatMoney(rInfo.maxLimit);
                     let percentage = rInfo.maxLimit === null ? 0 : Math.min(100, (currentSpend / rInfo.maxLimit) * 100);
-                    let barColor = percentage >= 100 ? '#ff4757' : '#2ed573';
-                    
-                    spendProgressHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); position: relative; z-index: 2;"><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#d1d8e0;"><span>帳單月: ${cycleStr}</span></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px; text-shadow: 0 1px 2px rgba(0,0,0,0.5);"><span>累積: <strong style="font-size:15px; letter-spacing:0.5px;">$${formatMoney(currentSpend)}</strong> / $${limitDisplay}</span><span style="color:#ffd32a; font-weight:bold; font-size:13px;">預估回饋: $${formatMoney(rInfo.reward)}</span></div>${rInfo.maxLimit !== null ? `<div style="width:100%; background:rgba(255,255,255,0.15); height:8px; border-radius:4px; overflow:hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,0.2);"><div style="width:${percentage}%; background:${barColor}; height:100%; transition:width 0.5s ease-out; box-shadow: 0 0 5px ${barColor};"></div></div>` : ''}</div>`;
+                    spendHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; position: relative; z-index: 2;"><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#d1d8e0;"><span>帳單月: ${cycleStr}</span></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;"><span>累積: <strong style="font-size:15px;">$${formatMoney(currentSpend)}</strong> / $${rInfo.maxLimit === null ? '無上限' : formatMoney(rInfo.maxLimit)}</span><span style="color:#ffd32a; font-weight:bold;">回饋: $${formatMoney(rInfo.reward)}</span></div>${rInfo.maxLimit !== null ? `<div style="width:100%; background:rgba(255,255,255,0.15); height:8px; border-radius:4px; overflow:hidden;"><div style="width:${percentage}%; background:${percentage >= 100 ? '#ff4757' : '#2ed573'}; height:100%;"></div></div>` : ''}</div>`;
                 } else if (currentSpend > 0) {
-                    spendProgressHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; font-size:12px; box-shadow: inset 0 2px 5px rgba(0,0,0,0.2); position: relative; z-index: 2;"><div style="font-size:11px; color:#d1d8e0; margin-bottom:4px;">帳單月: ${cycleStr}</div><span style="text-shadow: 0 1px 2px rgba(0,0,0,0.5);">累積消費: <strong style="font-size:15px; letter-spacing:0.5px;">$${formatMoney(currentSpend)}</strong></span></div>`;
+                    spendHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; font-size:12px; position: relative; z-index: 2;"><div style="font-size:11px; color:#d1d8e0; margin-bottom:4px;">帳單月: ${cycleStr}</div><span>累積消費: <strong style="font-size:15px;">$${formatMoney(currentSpend)}</strong></span></div>`;
                 }
                 
-                wrapper.innerHTML = `<div class="card bank-${card.bank}${cancelledClass}" onclick="toggleStackCard(this, event)">${cancelledStampHtml}<div class="card-header"><div><div style="letter-spacing: 1px;">${card.name}</div><div class="card-holder">持卡人：${card.holder} | ${card.bank}</div></div><button class="copy-btn" style="box-shadow: 0 2px 4px rgba(0,0,0,0.15); z-index: 2;" onclick="editCard('${card.id}', event)">✏️ 編輯</button></div><div class="card-body"><div class="card-row"><span class="card-value" style="font-size:22px;">${formatCC(card.no)}</span><button class="copy-btn" onclick="copyText('${card.no}', event)">複製</button></div><div class="card-row" style="background:transparent; padding:0; box-shadow:none;"><div class="card-row" style="flex:1; margin-right:6px; margin-bottom:0;"><span class="card-label">VALID：</span><span class="card-value">${formatExpiryDisplay(card.expiry)}</span><button class="copy-btn" onclick="copyText('${card.expiry}', event)">複製</button></div><div class="card-row" style="flex:1; margin-left:6px; margin-bottom:0;"><span class="card-label">CVV：</span><span class="card-value">${card.cvv}</span><button class="copy-btn" onclick="copyText('${card.cvv}', event)">複製</button></div></div>${eTicketHtml} ${spendProgressHtml}<div class="action-row" style="position: relative; z-index: 2;">${noteBtnHtml} ${expenseBtnHtml}<button class="copy-btn" style="background:rgba(255,255,255,0.85); color:#2c3e50; font-weight:bold; flex:1; padding:8px 12px; box-shadow: 0 3px 6px rgba(0,0,0,0.2);" onclick="copyAll('${card.no}', '${card.expiry}', '${card.cvv}', event)">📋 全複製</button></div></div><div class="org-logo">${card.org}</div></div>`;
+                wrapper.innerHTML = `
+                <div class="card bank-${card.bank}${isCancelled ? ' cancelled' : ''}" onclick="toggleStackCard(this, event)">
+                    ${isCancelled ? `<div class="cancelled-stamp">✂️ 已剪卡</div>` : ''}
+                    <div class="card-header"><div><div style="letter-spacing: 1px;">${card.name}</div><div class="card-holder">持卡人：${card.holder} | ${card.bank}</div></div><button class="copy-btn" style="z-index: 2;" onclick="editCard('${card.id}', event)">✏️ 編輯</button></div>
+                    <div class="card-body">
+                        <div class="card-row"><span class="card-value" style="font-size:22px;">${formatCC(card.no)}</span><button class="copy-btn" onclick="copyText('${card.no}', event)">複製</button></div>
+                        <div class="card-row" style="background:transparent; padding:0; box-shadow:none;">
+                            <div class="card-row" style="flex:1; margin-right:6px; margin-bottom:0;"><span class="card-label">VALID：</span><span class="card-value">${formatExpiryDisplay(card.expiry)}</span><button class="copy-btn" onclick="copyText('${card.expiry}', event)">複製</button></div>
+                            <div class="card-row" style="flex:1; margin-left:6px; margin-bottom:0;"><span class="card-label">CVV：</span><span class="card-value">${card.cvv}</span><button class="copy-btn" onclick="copyText('${card.cvv}', event)">複製</button></div>
+                        </div>
+                        ${card.etype !== '無' ? `<div class="card-row"><div><span class="card-label">${card.etype}：</span><span class="card-value">${formatCC(card.eticket)}</span></div><button class="copy-btn" onclick="copyText('${card.eticket}', event)">複製</button></div>` : ''} 
+                        ${spendHtml}
+                        <div class="action-row" style="position: relative; z-index: 2;">
+                            ${card.note ? `<button class="copy-btn" style="background:rgba(255,255,255,0.25); font-weight:bold;" onclick="openNoteModal('${card.id}', event)">📝 備註</button>` : ''} 
+                            <button class="copy-btn" style="background:rgba(255,255,255,0.25); font-weight:bold;" onclick="openExpenseModal('${card.id}', event)">💵 記帳明細</button>
+                            <button class="copy-btn" style="background:rgba(255,255,255,0.85); color:#2c3e50; font-weight:bold; flex:1;" onclick="copyAll('${card.no}', '${card.expiry}', '${card.cvv}', event)">📋 全複製</button>
+                        </div>
+                    </div><div class="org-logo">${card.org}</div>
+                </div>`;
                 container.appendChild(wrapper);
             });
         }
@@ -1183,23 +768,18 @@
         function toggleStackCard(element, event) {
             if (isListView || event.target.tagName === 'BUTTON' || event.target.tagName === 'A') return;
             const wrapper = element.parentElement;
-            if (wrapper.classList.contains('expanded')) {
-                wrapper.classList.remove('expanded');
-            } else {
+            if (wrapper.classList.contains('expanded')) wrapper.classList.remove('expanded');
+            else {
                 document.querySelectorAll('.stack-view .card-wrapper').forEach(w => w.classList.remove('expanded'));
                 wrapper.classList.add('expanded');
             }
         }
 
-        function closePopupModal(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            closeKeypad();
-        }
+        function closePopupModal(modalId) { document.getElementById(modalId).style.display = 'none'; closeKeypad(); }
 
         function handleInput(el) {
             let val = el.value.replace(/\D/g, '');
-            let maxL = (el.id === 'card-expiry') ? 4 : (el.id === 'card-cvv') ? 3 : (el.id === 'expense-amount') ? 8 : 16;
-            el.value = val.substring(0, maxL);
+            el.value = val.substring(0, el.id === 'card-expiry' ? 4 : el.id === 'card-cvv' ? 3 : el.id === 'expense-amount' ? 8 : 16);
         }
 
         function openExpiryPicker() {
@@ -1220,31 +800,19 @@
             closeKeypad();
         }
 
-        function changeYearPage(dir) {
-            currentYearPageStart = Math.max(0, Math.min(88, currentYearPageStart + (dir * 12)));
-            renderExpiryGrids();
-        }
+        function changeYearPage(dir) { currentYearPageStart = Math.max(0, Math.min(88, currentYearPageStart + (dir * 12))); renderExpiryGrids(); }
 
         function renderExpiryGrids() {
-            const mGrid = document.getElementById('expiry-month-grid');
-            mGrid.innerHTML = Array.from({ length: 12 }, (_, i) => {
-                let mStr = padNum(i + 1);
-                return `<div class="expiry-btn ${tempSelectedMonth === mStr ? 'active' : ''}" onclick="setTempExpiry('month', '${mStr}')">${mStr}</div>`;
+            document.getElementById('expiry-month-grid').innerHTML = Array.from({ length: 12 }, (_, i) => {
+                let mStr = padNum(i + 1); return `<div class="expiry-btn ${tempSelectedMonth === mStr ? 'active' : ''}" onclick="setTempExpiry('month', '${mStr}')">${mStr}</div>`;
             }).join('');
-            
-            const yGrid = document.getElementById('expiry-year-grid');
-            yGrid.innerHTML = Array.from({ length: 12 }, (_, i) => {
-                let y = currentYearPageStart + i;
-                if (y > 99) return '';
-                let yStr = padNum(y);
-                return `<div class="expiry-btn ${tempSelectedYear === yStr ? 'active' : ''}" onclick="setTempExpiry('year', '${yStr}')">${yStr}</div>`;
+            document.getElementById('expiry-year-grid').innerHTML = Array.from({ length: 12 }, (_, i) => {
+                let y = currentYearPageStart + i; if (y > 99) return '';
+                let yStr = padNum(y); return `<div class="expiry-btn ${tempSelectedYear === yStr ? 'active' : ''}" onclick="setTempExpiry('year', '${yStr}')">${yStr}</div>`;
             }).join('');
         }
 
-        function setTempExpiry(type, val) {
-            type === 'month' ? (tempSelectedMonth = val) : (tempSelectedYear = val);
-            renderExpiryGrids();
-        }
+        function setTempExpiry(type, val) { type === 'month' ? (tempSelectedMonth = val) : (tempSelectedYear = val); renderExpiryGrids(); }
 
         function confirmExpiry() {
             const input = document.getElementById('card-expiry');
@@ -1255,86 +823,62 @@
 
         function openExpenseModal(id, event) {
             if (event) event.stopPropagation();
-            const data = getCardData(id);
-            if (!data) return;
-            const { card } = data;
+            const data = getCardData(id); if (!data) return;
             
-            document.getElementById('expense-title').innerText = `記帳 - ${card.name}`;
-            document.getElementById('expense-card-id').value = card.id;
+            document.getElementById('expense-title').innerText = `記帳 - ${data.card.name}`;
+            document.getElementById('expense-card-id').value = data.card.id;
             document.getElementById('editing-expense-id').value = '';
             document.getElementById('expense-amount').value = '';
             document.getElementById('expense-note').value = '';
             document.getElementById('btn-save-expense').innerText = '💾 儲存';
             
-            const cycle = getCycleInfo(card);
+            const cycle = getCycleInfo(data.card);
             document.getElementById('expense-cycle-display').innerText = `${padNum(cycle.start.getMonth() + 1)}/${padNum(cycle.start.getDate())} - ${padNum(cycle.end.getMonth() + 1)}/${padNum(cycle.end.getDate())}`;
             
-            renderExpenseList(card, cycle);
+            renderExpenseList(data.card, cycle);
             document.getElementById('expense-modal').style.display = 'flex';
         }
 
         function renderExpenseList(card, cycle) {
             const container = document.getElementById('expense-list-container');
-            if (!card.expenses) card.expenses = [];
-            
-            const currExps = card.expenses.filter(e => e.timestamp >= cycle.start.getTime() && e.timestamp <= cycle.end.getTime()).sort((a, b) => b.timestamp - a.timestamp);
+            const currExps = (card.expenses || []).filter(e => e.timestamp >= cycle.start.getTime() && e.timestamp <= cycle.end.getTime()).sort((a, b) => b.timestamp - a.timestamp);
             
             if (currExps.length === 0) {
-                container.innerHTML = '<div style="text-align:center; padding: 20px; color:#bdc3c7;">尚無消費紀錄</div>';
-                return;
+                container.innerHTML = '<div style="text-align:center; padding: 20px; color:#bdc3c7;">尚無消費紀錄</div>'; return;
             }
-            
             container.innerHTML = currExps.map(exp => `
                 <div class="expense-item">
-                    <div class="expense-info">
-                        <div class="expense-date">${formatDate(exp.timestamp)}</div>
-                        ${exp.note ? `<div class="expense-note-text">${exp.note}</div>` : ''}
-                    </div>
+                    <div class="expense-info"><div class="expense-date">${formatDate(exp.timestamp)}</div>${exp.note ? `<div class="expense-note-text">${exp.note}</div>` : ''}</div>
                     <div class="expense-amt">$${formatMoney(exp.amount)}</div>
-                    <div class="expense-actions">
-                        <button class="btn-outline" style="border-color:#bdc3c7; color:#7f8c8d;" onclick="editExpenseRecord('${exp.id}')">✏️</button>
-                        <button class="btn-danger" onclick="deleteExpenseRecord('${exp.id}')">✖</button>
-                    </div>
+                    <div class="expense-actions"><button class="btn-outline" style="border-color:#bdc3c7; color:#7f8c8d;" onclick="editExpenseRecord('${exp.id}')">✏️</button><button class="btn-danger" onclick="deleteExpenseRecord('${exp.id}')">✖</button></div>
                 </div>`).join('');
         }
 
         function saveExpense() {
-            const data = getCardData(document.getElementById('expense-card-id').value);
-            if (!data) return;
-            const { card } = data;
-            
+            const data = getCardData(document.getElementById('expense-card-id').value); if (!data) return;
             const editId = document.getElementById('editing-expense-id').value;
             const amount = Number(document.getElementById('expense-amount').value);
             const noteStr = document.getElementById('expense-note').value.trim();
             
             if (!amount || amount <= 0) return alert('請輸入有效的金額');
-            if (!card.expenses) card.expenses = [];
+            if (!data.card.expenses) data.card.expenses = [];
             
             if (editId) {
-                const exp = card.expenses.find(e => e.id === editId);
-                if (exp) {
-                    exp.amount = amount;
-                    exp.note = noteStr;
-                }
+                const exp = data.card.expenses.find(e => e.id === editId);
+                if (exp) { exp.amount = amount; exp.note = noteStr; }
             } else {
-                card.expenses.push({ id: generateId(), timestamp: new Date().getTime(), amount, note: noteStr });
+                data.card.expenses.push({ id: generateId(), timestamp: Date.now(), amount, note: noteStr });
             }
-            
-            saveAndBackup();
-            renderCards();
-            
+            saveAndBackup(); renderCards();
             document.getElementById('editing-expense-id').value = '';
             document.getElementById('expense-amount').value = '';
             document.getElementById('expense-note').value = '';
             document.getElementById('btn-save-expense').innerText = '💾 儲存';
-            
-            renderExpenseList(card, getCycleInfo(card));
-            closeKeypad();
+            renderExpenseList(data.card, getCycleInfo(data.card)); closeKeypad();
         }
 
         function editExpenseRecord(expId) {
-            const data = getCardData(document.getElementById('expense-card-id').value);
-            if (!data) return;
+            const data = getCardData(document.getElementById('expense-card-id').value); if (!data) return;
             const exp = data.card.expenses.find(e => e.id === expId);
             if (exp) {
                 document.getElementById('editing-expense-id').value = exp.id;
@@ -1349,95 +893,59 @@
             const data = getCardData(document.getElementById('expense-card-id').value);
             if (data) {
                 data.card.expenses = data.card.expenses.filter(e => e.id !== expId);
-                saveAndBackup();
-                renderCards();
-                renderExpenseList(data.card, getCycleInfo(data.card));
+                saveAndBackup(); renderCards(); renderExpenseList(data.card, getCycleInfo(data.card));
             }
         }
 
         function openNoteModal(id, event) {
             if (event) event.stopPropagation();
-            const data = getCardData(id);
-            if (!data || !data.card.note) return;
+            const data = getCardData(id); if (!data || !data.card.note) return;
             document.getElementById('view-note-title').innerText = `${data.card.name} - 備註`;
             document.getElementById('view-note-content').innerHTML = linkify(data.card.note);
             document.getElementById('view-note-modal').style.display = 'flex';
         }
 
-        function toggleBillingDay() {
-            document.getElementById('billing-day-container').style.display = document.getElementById('card-cycle-type').value === 'billing' ? 'block' : 'none';
-        }
+        function toggleBillingDay() { document.getElementById('billing-day-container').style.display = document.getElementById('card-cycle-type').value === 'billing' ? 'block' : 'none'; }
 
         function renderTiers() {
             document.getElementById('tiers-container').innerHTML = currentEditingTiers.map((tier, idx) => `
                 <div class="tier-row">
                     <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">上限</span>
-                    <input type="number" placeholder="無上限留空" value="${tier.limit === null ? '' : tier.limit}" onchange="updateTier(${idx}, 'limit', this.value)" style="flex:2; box-shadow:inset 0 1px 3px rgba(0,0,0,0.05);">
+                    <input type="number" placeholder="無上限留空" value="${tier.limit === null ? '' : tier.limit}" onchange="updateTier(${idx}, 'limit', this.value)" style="flex:2;">
                     <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">元, 回饋</span>
-                    <input type="number" step="0.1" placeholder="%" value="${tier.rate}" onchange="updateTier(${idx}, 'rate', this.value)" style="flex:1; box-shadow:inset 0 1px 3px rgba(0,0,0,0.05);">
+                    <input type="number" step="0.1" placeholder="%" value="${tier.rate}" onchange="updateTier(${idx}, 'rate', this.value)" style="flex:1;">
                     <span style="font-size:12px; color:#7f8c8d; font-weight:bold;">%</span>
-                    <button class="btn-danger" style="padding:8px 12px; font-size:12px; box-shadow: 0 3px 0 #c0392b; border-radius:8px;" onclick="removeTier(${idx}, event)">X</button>
+                    <button class="btn-danger" style="padding:8px 12px; font-size:12px;" onclick="removeTier(${idx}, event)">X</button>
                 </div>`).join('');
         }
 
-        function addTier(e) {
-            if (e) e.preventDefault();
-            currentEditingTiers.push({ limit: null, rate: 0 });
-            renderTiers();
-        }
-
-        function updateTier(idx, f, v) {
-            currentEditingTiers[idx][f] = (f === 'limit') ? (v === '' || isNaN(v) ? null : Number(v)) : Number(v);
-        }
-
-        function removeTier(idx, e) {
-            if (e) e.preventDefault();
-            currentEditingTiers.splice(idx, 1);
-            renderTiers();
-        }
+        function addTier(e) { if (e) e.preventDefault(); currentEditingTiers.push({ limit: null, rate: 0 }); renderTiers(); }
+        function updateTier(idx, f, v) { currentEditingTiers[idx][f] = (f === 'limit') ? (v === '' || isNaN(v) ? null : Number(v)) : Number(v); }
+        function removeTier(idx, e) { if (e) e.preventDefault(); currentEditingTiers.splice(idx, 1); renderTiers(); }
 
         function fillForm(card = {}) {
-            document.getElementById('card-id').value = card.id || '';
-            document.getElementById('card-name').value = card.name || '';
-            document.getElementById('card-status').value = card.status || 'active';
-            if (card.bank) document.getElementById('card-bank').value = card.bank;
-            if (card.org) document.getElementById('card-org').value = card.org;
-            document.getElementById('card-no').value = card.no || '';
-            document.getElementById('card-expiry').value = card.expiry || '';
-            document.getElementById('card-cvv').value = card.cvv || '';
-            if (card.etype) document.getElementById('card-etype').value = card.etype;
-            document.getElementById('card-eticket').value = card.eticket || '';
-            document.getElementById('card-note').value = card.note || '';
-            document.getElementById('card-cycle-type').value = card.cycleType || 'monthly';
-            document.getElementById('card-billing-day').value = card.billingDay || '';
+            const setVal = (id, val) => document.getElementById(id).value = val;
+            setVal('card-id', card.id || ''); setVal('card-name', card.name || ''); setVal('card-status', card.status || 'active');
+            if (card.bank) setVal('card-bank', card.bank); if (card.org) setVal('card-org', card.org);
+            setVal('card-no', card.no || ''); setVal('card-expiry', card.expiry || ''); setVal('card-cvv', card.cvv || '');
+            if (card.etype) setVal('card-etype', card.etype); setVal('card-eticket', card.eticket || '');
+            setVal('card-note', card.note || ''); setVal('card-cycle-type', card.cycleType || 'monthly'); setVal('card-billing-day', card.billingDay || '');
         }
 
         function openModal() {
-            document.getElementById('modal-title').innerText = '新增卡片';
-            fillForm({ etype: '無', status: 'active' });
-            toggleBillingDay();
-            currentEditingTiers = [];
-            renderTiers();
-            document.getElementById('btn-delete').style.display = 'none';
-            document.getElementById('form-modal').style.display = 'block';
+            document.getElementById('modal-title').innerText = '新增卡片'; fillForm({ etype: '無', status: 'active' });
+            toggleBillingDay(); currentEditingTiers = []; renderTiers();
+            document.getElementById('btn-delete').style.display = 'none'; document.getElementById('form-modal').style.display = 'block';
         }
 
-        function closeModal() {
-            document.getElementById('form-modal').style.display = 'none';
-            closeKeypad();
-        }
+        function closeModal() { document.getElementById('form-modal').style.display = 'none'; closeKeypad(); }
 
         function editCard(id, event) {
             if (event) event.stopPropagation();
-            const data = getCardData(id);
-            if (!data) return;
-            document.getElementById('modal-title').innerText = '編輯卡片';
-            fillForm(data.card);
-            toggleBillingDay();
-            currentEditingTiers = data.card.tiers ? JSON.parse(JSON.stringify(data.card.tiers)) : [];
-            renderTiers();
-            document.getElementById('btn-delete').style.display = 'block';
-            document.getElementById('form-modal').style.display = 'block';
+            const data = getCardData(id); if (!data) return;
+            document.getElementById('modal-title').innerText = '編輯卡片'; fillForm(data.card); toggleBillingDay();
+            currentEditingTiers = data.card.tiers ? JSON.parse(JSON.stringify(data.card.tiers)) : []; renderTiers();
+            document.getElementById('btn-delete').style.display = 'block'; document.getElementById('form-modal').style.display = 'block';
         }
 
         function saveCard() {
@@ -1448,191 +956,110 @@
             
             const sortedTiers = [...currentEditingTiers].sort((a, b) => (a.limit === null ? Infinity : a.limit) - (b.limit === null ? Infinity : b.limit));
             const data = getCardData(id);
-            const preservedExpenses = data ? (data.card.expenses || []) : [];
             
             const cardData = {
-                id,
-                name,
-                holder: detectHolder(name),
-                status: document.getElementById('card-status').value,
-                bank: document.getElementById('card-bank').value,
-                org: document.getElementById('card-org').value,
-                no,
-                expiry: document.getElementById('card-expiry').value,
-                cvv: document.getElementById('card-cvv').value,
-                etype: document.getElementById('card-etype').value,
-                eticket: document.getElementById('card-eticket').value,
-                note: document.getElementById('card-note').value.trim(),
-                cycleType: document.getElementById('card-cycle-type').value,
-                billingDay: document.getElementById('card-billing-day').value,
-                tiers: sortedTiers,
-                expenses: preservedExpenses
+                id, name, holder: detectHolder(name),
+                status: document.getElementById('card-status').value, bank: document.getElementById('card-bank').value,
+                org: document.getElementById('card-org').value, no, expiry: document.getElementById('card-expiry').value,
+                cvv: document.getElementById('card-cvv').value, etype: document.getElementById('card-etype').value,
+                eticket: document.getElementById('card-eticket').value, note: document.getElementById('card-note').value.trim(),
+                cycleType: document.getElementById('card-cycle-type').value, billingDay: document.getElementById('card-billing-day').value,
+                tiers: sortedTiers, expenses: data ? (data.card.expenses || []) : []
             };
             
             data ? (cards[data.index] = cardData) : cards.push(cardData);
-            saveAndBackup();
-            closeModal();
-            renderCards();
+            saveAndBackup(); closeModal(); renderCards();
         }
 
         function deleteCard() {
-            if (!confirm('確定要永久刪除此卡片所有資料嗎？\n\n(提示：如果您只是停用這張卡片，建議將「卡片狀態」改為「已剪卡」以保留歷史紀錄。)')) return;
+            if (!confirm('確定要永久刪除此卡片所有資料嗎？\n\n(提示：如果您只是停用這張卡片，建議將「卡片狀態」改為「已剪卡」。)')) return;
             cards = cards.filter(c => c.id !== document.getElementById('card-id').value);
-            saveAndBackup();
-            closeModal();
-            renderCards();
+            saveAndBackup(); closeModal(); renderCards();
         }
 
-        function openSettings() {
-            document.getElementById('settings-modal').style.display = 'block';
-        }
-
-        function closeSettings() {
-            document.getElementById('settings-modal').style.display = 'none';
-            document.getElementById('import-file').value = '';
-        }
+        function openSettings() { document.getElementById('settings-modal').style.display = 'block'; }
+        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; document.getElementById('import-file').value = ''; }
 
         function saveAndBackup() {
             localStorage.setItem('creditCards', JSON.stringify(cards));
             const timeStr = new Date().toLocaleString('zh-TW');
             localStorage.setItem('lastBackupTime', timeStr);
-            updateBackupStatus(timeStr);
-            exportData('json', true);
+            updateBackupStatus(timeStr); exportData('json', true);
         }
 
-        function updateBackupStatus(timeStr) {
-            if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`;
-        }
+        function updateBackupStatus(timeStr) { if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`; }
 
         function exportData(type, isAuto = false) {
             if (cards.length === 0 && !isAuto) return alert('沒有資料可匯出');
-            const timeKey = getTimestampStr();
-            let content = '', filename = '', mimeType = '';
+            const timeKey = getTimestampStr(); let content = '', filename = '', mimeType = '';
             
             if (type === 'json') {
-                content = JSON.stringify(cards);
-                filename = `信用卡夾程式備份_${timeKey}.json`;
-                mimeType = 'application/json';
+                content = JSON.stringify(cards); filename = `信用卡夾程式備份_${timeKey}.json`; mimeType = 'application/json';
             } else if (type === 'txt') {
-                const grouped = cards.reduce((acc, c) => {
-                    (acc[c.bank] = acc[c.bank] || []).push(c);
-                    return acc;
-                }, {});
-                
+                const grouped = cards.reduce((acc, c) => { (acc[c.bank] = acc[c.bank] || []).push(c); return acc; }, {});
                 Object.entries(grouped).forEach(([bank, bCards]) => {
                     content += `========================\n【${bank}】\n`;
-                    bCards.sort((a, b) => {
-                        const wA = a.holder === '宏和' ? 1 : a.holder === '瑋淨' ? 2 : 3;
-                        const wB = b.holder === '宏和' ? 1 : b.holder === '瑋淨' ? 2 : 3;
-                        return wA - wB;
-                    }).forEach(c => {
-                        const statusStr = c.status === 'cancelled' ? ' [已剪卡]' : '';
-                        content += `------------------------\n卡片名稱：${c.name}${statusStr}\n持卡人：${c.holder}\n發卡組織：${c.org}\n卡號：${formatCC(c.no)}\n到期日：${formatExpiryDisplay(c.expiry)}\n驗證碼：${c.cvv}\n電子票證：${c.etype !== '無' ? c.etype + ' ' + formatCC(c.eticket) : '無'}\n`;
-                        let currSpend = calculateCurrentSpend(c);
-                        if (currSpend > 0) content += `本期累積消費：$${formatMoney(currSpend)}\n`;
+                    bCards.sort((a, b) => (a.holder === '宏和' ? 1 : a.holder === '瑋淨' ? 2 : 3) - (b.holder === '宏和' ? 1 : b.holder === '瑋淨' ? 2 : 3)).forEach(c => {
+                        content += `------------------------\n卡片名稱：${c.name}${c.status === 'cancelled' ? ' [已剪卡]' : ''}\n持卡人：${c.holder}\n發卡組織：${c.org}\n卡號：${formatCC(c.no)}\n到期日：${formatExpiryDisplay(c.expiry)}\n驗證碼：${c.cvv}\n電子票證：${c.etype !== '無' ? c.etype + ' ' + formatCC(c.eticket) : '無'}\n`;
+                        let currSpend = calculateCurrentSpend(c); if (currSpend > 0) content += `本期累積消費：$${formatMoney(currSpend)}\n`;
                         if (c.tiers && c.tiers.length > 0) content += `回饋規則：${c.tiers.map(t => `${t.limit === null ? '無上限' : t.limit + '元'}(${t.rate}%)`).join(' / ')}\n`;
                         if (c.note) content += `備註：\n${c.note}\n`;
-                    });
-                    content += `\n`;
+                    }); content += `\n`;
                 });
-                filename = `信用卡夾程式清單_${timeKey}.txt`;
-                mimeType = 'text/plain';
+                filename = `信用卡夾程式清單_${timeKey}.txt`; mimeType = 'text/plain';
             }
             
-            const a = document.createElement('a');
-            a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
-            a.download = filename;
-            a.click();
-            URL.revokeObjectURL(a.href);
-
-            if (!isAuto) {
-                alert(`✅ 已成功匯出${type === 'json' ? '備份檔 (JSON)' : '文字檔 (TXT)'}！\n\n檔名：${filename}\n請至您的「下載」資料夾中查看。`);
-            }
+            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+            a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+            if (!isAuto) alert(`✅ 已成功匯出${type === 'json' ? '備份檔 (JSON)' : '文字檔 (TXT)'}！\n\n檔名：${filename}\n請至您的「下載」資料夾中查看。`);
         }
 
         function importData(event) {
-            const file = event.target.files[0];
-            if (!file) return;
+            const file = event.target.files[0]; if (!file) return;
             const reader = new FileReader();
             reader.onload = e => {
                 try {
                     const imported = JSON.parse(e.target.result);
                     if (Array.isArray(imported) && confirm('確定要還原此備份檔嗎？目前的卡片資料將會被完全覆蓋。')) {
-                        cards = imported;
-                        saveAndBackup();
-                        renderCards();
-                        closeSettings();
-                        alert('備份檔還原成功！');
-                    } else if (!Array.isArray(imported)) {
-                        alert('檔案格式錯誤，請選擇 JSON 備份檔。');
-                    }
-                } catch (error) {
-                    alert('讀取檔案失敗：' + error.message);
-                }
+                        cards = imported; saveAndBackup(); renderCards(); closeSettings(); alert('備份檔還原成功！');
+                    } else if (!Array.isArray(imported)) alert('檔案格式錯誤，請選擇 JSON 備份檔。');
+                } catch (error) { alert('讀取檔案失敗：' + error.message); }
                 event.target.value = '';
-            };
-            reader.readAsText(file);
+            }; reader.readAsText(file);
         }
 
         function openKeypad(inputId) {
-            activeInputId = inputId;
-            document.getElementById('virtual-keypad').style.display = 'grid';
+            activeInputId = inputId; document.getElementById('virtual-keypad').style.display = 'grid';
             const el = document.getElementById(inputId);
-            if (el) {
-                el.setAttribute('inputmode', 'none');
-                el.classList.add('keypad-active');
-                el.focus();
-                setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100);
-            }
+            if (el) { el.setAttribute('inputmode', 'none'); el.classList.add('keypad-active'); el.focus(); setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); }
         }
 
         function closeKeypad() {
             if (activeInputId) {
                 const el = document.getElementById(activeInputId);
-                if (el) {
-                    el.removeAttribute('inputmode');
-                    el.classList.remove('keypad-active');
-                }
+                if (el) { el.removeAttribute('inputmode'); el.classList.remove('keypad-active'); }
             }
-            activeInputId = null;
-            document.getElementById('virtual-keypad').style.display = 'none';
+            activeInputId = null; document.getElementById('virtual-keypad').style.display = 'none';
         }
 
         document.addEventListener('focusin', e => {
             if (activeInputId && e.target.tagName === 'INPUT') {
-                const supportedIds = ['card-no', 'card-expiry', 'card-cvv', 'card-eticket', 'expense-amount'];
-                if (supportedIds.includes(e.target.id)) {
+                if (['card-no', 'card-expiry', 'card-cvv', 'card-eticket', 'expense-amount'].includes(e.target.id)) {
                     if (activeInputId !== e.target.id) {
                         const oldEl = document.getElementById(activeInputId);
-                        if (oldEl) {
-                            oldEl.removeAttribute('inputmode');
-                            oldEl.classList.remove('keypad-active');
-                        }
-                        activeInputId = e.target.id;
-                        e.target.setAttribute('inputmode', 'none');
-                        e.target.classList.add('keypad-active');
+                        if (oldEl) { oldEl.removeAttribute('inputmode'); oldEl.classList.remove('keypad-active'); }
+                        activeInputId = e.target.id; e.target.setAttribute('inputmode', 'none'); e.target.classList.add('keypad-active');
                     }
-                } else {
-                    closeKeypad();
-                }
+                } else closeKeypad();
             }
         });
 
         document.addEventListener('keydown', e => {
             if (!activeInputId) return;
-            if (/^[0-9]$/.test(e.key)) {
-                keyPress(e.key);
-                e.preventDefault();
-            } else if (e.key === 'Backspace') {
-                keyPress('del');
-                e.preventDefault();
-            } else if (e.key === 'Delete') {
-                keyPress('clear');
-                e.preventDefault();
-            } else if (e.key === 'Escape' || e.key === 'Enter') {
-                closeKeypad();
-                e.preventDefault();
-            }
+            if (/^[0-9]$/.test(e.key)) { keyPress(e.key); e.preventDefault(); }
+            else if (e.key === 'Backspace') { keyPress('del'); e.preventDefault(); }
+            else if (e.key === 'Delete') { keyPress('clear'); e.preventDefault(); }
+            else if (e.key === 'Escape' || e.key === 'Enter') { closeKeypad(); e.preventDefault(); }
         });
 
         function keyPress(val) {
@@ -1641,25 +1068,15 @@
             let cur = input.value, s = input.selectionStart || 0, e = input.selectionEnd || 0;
             let maxL = (activeInputId === 'card-expiry') ? 4 : (activeInputId === 'card-cvv') ? 3 : (activeInputId === 'expense-amount') ? 8 : 16;
             
-            if (val === 'clear') {
-                input.value = '';
-                input.focus();
-            } else if (val === 'del') {
-                if (s === e && s > 0) {
-                    input.value = cur.slice(0, s - 1) + cur.slice(e);
-                    input.setSelectionRange(s - 1, s - 1);
-                } else if (s !== e) {
-                    input.value = cur.slice(0, s) + cur.slice(e);
-                    input.setSelectionRange(s, s);
-                }
+            if (val === 'clear') { input.value = ''; input.focus(); }
+            else if (val === 'del') {
+                if (s === e && s > 0) { input.value = cur.slice(0, s - 1) + cur.slice(e); input.setSelectionRange(s - 1, s - 1); }
+                else if (s !== e) { input.value = cur.slice(0, s) + cur.slice(e); input.setSelectionRange(s, s); }
                 input.focus();
             } else {
-                if (activeInputId === 'expense-amount' && cur === '0' && s === 1) {
-                    input.value = val;
-                    input.setSelectionRange(1, 1);
-                } else if ((cur.slice(0, s) + val + cur.slice(e)).length <= maxL) {
-                    input.value = cur.slice(0, s) + val + cur.slice(e);
-                    input.setSelectionRange(s + 1, s + 1);
+                if (activeInputId === 'expense-amount' && cur === '0' && s === 1) { input.value = val; input.setSelectionRange(1, 1); }
+                else if ((cur.slice(0, s) + val + cur.slice(e)).length <= maxL) {
+                    input.value = cur.slice(0, s) + val + cur.slice(e); input.setSelectionRange(s + 1, s + 1);
                 }
                 input.focus();
             }
@@ -1668,3 +1085,5 @@
     </script>
 </body>
 </html>
+
+
