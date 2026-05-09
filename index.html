@@ -112,7 +112,9 @@
         .card-row { display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px; background: rgba(0, 0, 0, .25); padding: 8px 12px; border-radius: 10px; box-shadow: inset 0 1px 3px rgba(0, 0, 0, .2); }
         .card-label { font-size: 12px; opacity: .85; }
         .card-value { font-family: 'Courier New', Courier, monospace; font-size: 17px; letter-spacing: 1.5px; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
-        .org-logo { position: absolute; bottom: 15px; right: 20px; font-size: 26px; font-weight: 900; font-style: italic; opacity: .8; text-shadow: 0 2px 5px rgba(0, 0, 0, .4); z-index: 1; }
+        
+        /* 發卡組織浮水印樣式 */
+        .org-logo { position: absolute; bottom: 15px; right: 20px; font-size: 26px; font-weight: 900; font-style: italic; opacity: .8; text-shadow: 0 2px 5px rgba(0, 0, 0, .4); z-index: 1; pointer-events: none; }
 
         .copy-btn {
             background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .3);
@@ -503,12 +505,12 @@
 
     <script>
         let deferredPrompt = null;
+        let activeModals = []; // 追蹤目前開啟的彈窗，用於返回鍵邏輯
 
         // 【駭客級別】單檔 PWA 註冊與路徑清理
         function setupPWA() {
             let iconUrl = "icon.png";
             try {
-                // 精簡路徑轉換邏輯
                 const isVirtual = window.location.href.startsWith('blob:') || window.location.href.startsWith('data:');
                 iconUrl = new URL("icon.png", isVirtual ? window.location.origin + '/' : window.location.href).href;
             } catch (e) { }
@@ -535,6 +537,51 @@
         }
         setupPWA();
 
+        // 【核心功能】系統返回鍵攔截邏輯
+        window.addEventListener('popstate', function(event) {
+            if (activeModals.length > 0) {
+                // 如果有開啟的彈窗，則關閉最上層的彈窗，並阻止退出 APP
+                const modalIdToClose = activeModals.pop();
+                document.getElementById(modalIdToClose).style.display = 'none';
+                if (modalIdToClose === 'form-modal' || modalIdToClose === 'settings-modal') closeKeypad();
+                
+                // 如果關閉後還有其他彈窗，再推入一個狀態防止下次返回直接退出
+                if (activeModals.length > 0) {
+                    history.pushState({ modalOpen: true }, '');
+                }
+            } else {
+                // 如果沒有任何彈窗開啟（代表在首頁），跳出確認退出的提示
+                if (confirm('確定要退出信用卡夾嗎？')) {
+                    // 若同意，由於已經觸發 popstate，系統會自然退出
+                } else {
+                    // 若取消退出，需重新推入一個狀態，否則下次按返回會直接退出且不觸發 popstate
+                    history.pushState(null, '', window.location.href);
+                }
+            }
+        });
+
+        // 推入初始狀態，作為基底
+        history.pushState(null, '', window.location.href);
+
+        // 輔助函數：開啟彈窗時推入狀態並記錄
+        function trackModalOpen(modalId) {
+            document.getElementById(modalId).style.display = (modalId === 'form-modal' || modalId === 'settings-modal') ? 'block' : 'flex';
+            activeModals.push(modalId);
+            history.pushState({ modalOpen: true }, '');
+        }
+
+        // 輔助函數：手動關閉彈窗時同步狀態
+        function trackModalClose(modalId) {
+            document.getElementById(modalId).style.display = 'none';
+            const index = activeModals.indexOf(modalId);
+            if (index > -1) {
+                activeModals.splice(index, 1);
+                // 為了保持 history 乾淨，我們手動觸發 back，這會觸發 popstate，但在那邊我們需要處理重複關閉的邏輯
+                // 簡單起見，我們直接 back()，讓 popstate 去處理實際的關閉
+                history.back();
+            }
+        }
+
         const BANKS = ["中信", "國泰", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山", "彰化", "元大", "新光", "凱基", "第一", "星展", "LINEBank", "匯豐", "台銀", "土銀", "合庫", "兆豐", "台企銀", "上海", "渣打", "王道", "將來", "高雄", "台中", "安泰", "板信", "陽信", "華泰"];
         let cards = JSON.parse(localStorage.getItem('creditCards')) || [];
         let isListView = true;
@@ -542,20 +589,16 @@
         let currentEditingTiers = [];
         let tempSelectedMonth = '', tempSelectedYear = '', currentYearPageStart = 0;
 
-        // 【PWA】攔截原生安裝事件
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault(); deferredPrompt = e;
             const btn = document.getElementById('install-top-btn');
             if (btn) btn.classList.add('pulse-animation');
         });
 
-        // 【PWA】智慧型安裝判斷與彈窗
         function handleInstallClick() {
             if (deferredPrompt) {
-                // Android 系統直接觸發原生彈窗
                 deferredPrompt.prompt();
                 deferredPrompt.userChoice.then((choiceResult) => {
-                    // 若同意安裝，則立即隱藏按鈕 (修正了不論取消都隱藏的 Bug)
                     if (choiceResult.outcome === 'accepted') {
                         document.getElementById('install-btn-container').style.display = 'none';
                     }
@@ -563,33 +606,28 @@
                     document.getElementById('install-top-btn').classList.remove('pulse-animation');
                 });
             } else {
-                // 如果無法觸發原生彈窗，偵測作業系統以顯示相對應的教學
                 const isIOS = (/iPad|iPhone|iPod/.test(navigator.userAgent)) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
                 document.getElementById('guide-ios').style.display = isIOS ? 'block' : 'none';
                 document.getElementById('guide-android').style.display = isIOS ? 'none' : 'block';
-                document.getElementById('install-modal').style.display = 'flex';
+                trackModalOpen('install-modal');
             }
         }
 
-        // 監聽安裝完成事件，強制隱藏按鈕
         window.addEventListener('appinstalled', () => {
             const container = document.getElementById('install-btn-container');
             if (container) container.style.display = 'none';
         });
 
         window.onload = () => {
-            // 【優化】將迴圈內反覆操作 DOM 轉為一次性組合渲染
             const bankOptsHTML = BANKS.map(b => `<option value="${b}">${b}</option>`).join('');
             document.getElementById('card-bank').innerHTML += bankOptsHTML;
             document.getElementById('filter-bank').innerHTML += bankOptsHTML;
             
-            // 雙重保險：除了純 CSS 以外，加入 JS 端 APP 模式判定隱藏
             if (window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone === true) {
                 const container = document.getElementById('install-btn-container');
                 if (container) container.style.display = 'none';
             }
             
-            // 舊版資料結構移轉與修補
             let migrated = false;
             cards.forEach(card => {
                 if (card.bank === '中國信託') { card.bank = '中信'; migrated = true; }
@@ -736,6 +774,9 @@
                     spendHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; font-size:12px; position: relative; z-index: 2;"><div style="font-size:11px; color:#d1d8e0; margin-bottom:4px;">帳單月: ${cycleStr}</div><span>累積消費: <strong style="font-size:15px;">$${formatMoney(currentSpend)}</strong></span></div>`;
                 }
                 
+                // 發卡組織浮水印 (確保為預設值或已輸入值)
+                const orgDisplay = (card.org && card.org !== "待查") ? card.org : "";
+
                 wrapper.innerHTML = `
                 <div class="card bank-${card.bank}${isCancelled ? ' cancelled' : ''}" onclick="toggleStackCard(this, event)">
                     ${isCancelled ? `<div class="cancelled-stamp">✂️ 已剪卡</div>` : ''}
@@ -753,7 +794,7 @@
                             <button class="copy-btn" style="background:rgba(255,255,255,0.25); font-weight:bold;" onclick="openExpenseModal('${card.id}', event)">💵 記帳明細</button>
                             <button class="copy-btn" style="background:rgba(255,255,255,0.85); color:#2c3e50; font-weight:bold; flex:1;" onclick="copyAll('${card.no}', '${card.expiry}', '${card.cvv}', event)">📋 全複製</button>
                         </div>
-                    </div><div class="org-logo">${card.org}</div>
+                    </div><div class="org-logo">${orgDisplay}</div>
                 </div>`;
                 container.appendChild(wrapper);
             });
@@ -775,7 +816,7 @@
             }
         }
 
-        function closePopupModal(modalId) { document.getElementById(modalId).style.display = 'none'; closeKeypad(); }
+        function closePopupModal(modalId) { trackModalClose(modalId); closeKeypad(); }
 
         function handleInput(el) {
             let val = el.value.replace(/\D/g, '');
@@ -796,7 +837,7 @@
             }
             if (currentYearPageStart < 0) currentYearPageStart = 0;
             renderExpiryGrids();
-            document.getElementById('expiry-modal').style.display = 'flex';
+            trackModalOpen('expiry-modal');
             closeKeypad();
         }
 
@@ -836,7 +877,7 @@
             document.getElementById('expense-cycle-display').innerText = `${padNum(cycle.start.getMonth() + 1)}/${padNum(cycle.start.getDate())} - ${padNum(cycle.end.getMonth() + 1)}/${padNum(cycle.end.getDate())}`;
             
             renderExpenseList(data.card, cycle);
-            document.getElementById('expense-modal').style.display = 'flex';
+            trackModalOpen('expense-modal');
         }
 
         function renderExpenseList(card, cycle) {
@@ -902,7 +943,7 @@
             const data = getCardData(id); if (!data || !data.card.note) return;
             document.getElementById('view-note-title').innerText = `${data.card.name} - 備註`;
             document.getElementById('view-note-content').innerHTML = linkify(data.card.note);
-            document.getElementById('view-note-modal').style.display = 'flex';
+            trackModalOpen('view-note-modal');
         }
 
         function toggleBillingDay() { document.getElementById('billing-day-container').style.display = document.getElementById('card-cycle-type').value === 'billing' ? 'block' : 'none'; }
@@ -933,19 +974,21 @@
         }
 
         function openModal() {
-            document.getElementById('modal-title').innerText = '新增卡片'; fillForm({ etype: '無', status: 'active' });
+            document.getElementById('modal-title').innerText = '新增卡片'; fillForm({ etype: '無', status: 'active', org: 'VISA' });
             toggleBillingDay(); currentEditingTiers = []; renderTiers();
-            document.getElementById('btn-delete').style.display = 'none'; document.getElementById('form-modal').style.display = 'block';
+            document.getElementById('btn-delete').style.display = 'none'; 
+            trackModalOpen('form-modal');
         }
 
-        function closeModal() { document.getElementById('form-modal').style.display = 'none'; closeKeypad(); }
+        function closeModal() { trackModalClose('form-modal'); closeKeypad(); }
 
         function editCard(id, event) {
             if (event) event.stopPropagation();
             const data = getCardData(id); if (!data) return;
             document.getElementById('modal-title').innerText = '編輯卡片'; fillForm(data.card); toggleBillingDay();
             currentEditingTiers = data.card.tiers ? JSON.parse(JSON.stringify(data.card.tiers)) : []; renderTiers();
-            document.getElementById('btn-delete').style.display = 'block'; document.getElementById('form-modal').style.display = 'block';
+            document.getElementById('btn-delete').style.display = 'block'; 
+            trackModalOpen('form-modal');
         }
 
         function saveCard() {
@@ -977,8 +1020,8 @@
             saveAndBackup(); closeModal(); renderCards();
         }
 
-        function openSettings() { document.getElementById('settings-modal').style.display = 'block'; }
-        function closeSettings() { document.getElementById('settings-modal').style.display = 'none'; document.getElementById('import-file').value = ''; }
+        function openSettings() { trackModalOpen('settings-modal'); }
+        function closeSettings() { trackModalClose('settings-modal'); document.getElementById('import-file').value = ''; }
 
         function saveAndBackup() {
             localStorage.setItem('creditCards', JSON.stringify(cards));
@@ -1085,5 +1128,3 @@
     </script>
 </body>
 </html>
-
-
