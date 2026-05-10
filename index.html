@@ -516,49 +516,45 @@
     <script>
         let deferredPrompt = null;
         
-        // 【核心功能】系統返回鍵攔截邏輯與防呆 (全新精準堆疊架構)
+        // 【核心功能】全新狀態機路由：精確掌握每一層彈窗與歷史
         history.replaceState({ step: 0, type: 'base' }, '');
         history.pushState({ step: 1, type: 'main' }, '');
         let currentStep = 1;
-        let activeModalsStack = []; // 追蹤目前開啟的彈窗與層次
+        let activeModalsStack = []; // 紀錄開啟中的彈窗與其所在的階層
 
-        const initHistory = () => {
-            if (!history.state || history.state.type !== 'main') {
-                history.pushState({ step: 1, type: 'main' }, '');
-                currentStep = 1;
-            }
-        };
+        // 【防呆加固】處理部分瀏覽器 (如 iOS/Chrome) 不允許在無互動時攔截返回鍵的限制
+        document.body.addEventListener('touchstart', () => {}, { once: true, passive: true });
 
-        // 確保首次觸碰啟動攔截 (iOS/部分 Android 防護)
-        document.body.addEventListener('click', initHistory, { once: true });
-        document.body.addEventListener('touchstart', initHistory, { once: true });
-
+        // 系統返回鍵監聽核心邏輯
         window.addEventListener('popstate', function(event) {
             const state = event.state;
             if (!state) return;
 
+            currentStep = state.step || 1; // 隨時同步當前所處的歷史階層
+
             if (state.type === 'base') {
-                // 在主畫面按了返回鍵 (或邊緣滑動返回)
+                // 退到最底層：詢問退出
                 if (confirm('確定要退出信用卡夾嗎？')) {
                     try { window.close(); } catch(e) {}
-                    history.back(); // 確定退出
+                    // 給予無法直接被程式關閉的瀏覽器明確的視覺回饋，此時再按返回就會真正離開
+                    document.body.innerHTML = '<div style="display:flex; flex-direction:column; justify-content:center; align-items:center; height:100vh; background:var(--bg-color); color:var(--text-color); padding: 20px; text-align: center;"><h2>👋 已登出</h2><p style="color:#7f8c8d; margin-top:10px;">您可以直接關閉此視窗，<br>或再次點擊系統返回鍵離開。</p></div>';
                 } else {
-                    // 取消退出，補回 main 狀態，完美留在程式內
+                    // 取消退出：完美補回主畫面狀態
                     history.pushState({ step: 1, type: 'main' }, '');
                     currentStep = 1;
                 }
             } else if (state.type === 'main') {
-                // 退回主畫面，關閉所有彈窗
+                // 退回主畫面：確保所有彈窗與鍵盤確實關閉
                 closeAllModals();
-                currentStep = state.step;
             } else if (state.type === 'modal') {
-                // 在多層彈窗間切換 (例如關閉到期日，回到新增卡片)
+                // 退回某層彈窗：關閉所有比這層「更高層」的彈窗與鍵盤
                 hideModalsAboveStep(state.step);
-                currentStep = state.step;
+            } else if (state.type === 'keypad') {
+                // 在虛擬鍵盤層 (不需要特別處理，交由路由器派發)
             }
         });
 
-        // 追蹤彈窗開啟，推入歷史堆疊
+        // 打開彈窗：向歷史推入一個新階層
         function trackModalOpen(modalId) {
             document.getElementById(modalId).style.display = (modalId === 'form-modal' || modalId === 'settings-modal') ? 'block' : 'flex';
             currentStep++;
@@ -566,36 +562,50 @@
             activeModalsStack.push({ id: modalId, step: currentStep });
         }
 
-        // 追蹤彈窗關閉 (按了 X)，同步倒退歷史堆疊
+        // 關閉彈窗：精準回退歷史層級
         function trackModalClose(modalId) {
-            document.getElementById(modalId).style.display = 'none';
-            activeModalsStack = activeModalsStack.filter(m => m.id !== modalId);
+            document.getElementById(modalId).style.display = 'none'; // 先關閉畫面
             
-            // 如果關閉的是歷史紀錄最上層的彈窗，需要同步倒退 history 觸發 popstate
-            if (history.state && history.state.modalId === modalId) {
-                history.back(); 
+            const index = activeModalsStack.findIndex(m => m.id === modalId);
+            if (index > -1) {
+                const target = activeModalsStack[index];
+                const stepsToGoBack = currentStep - (target.step - 1);
+                
+                activeModalsStack.splice(index, 1); // 立即移出陣列防連點
+                
+                // 驅動瀏覽器往回跳轉指定的層數 (這會觸發 popstate，自動解開鍵盤或其他疊層)
+                if (stepsToGoBack > 0) history.go(-stepsToGoBack);
             }
+        }
+
+        // 僅處理 DOM 畫面的鍵盤關閉
+        function closeKeypadDOMOnly() {
+            if (activeInputId) {
+                const el = document.getElementById(activeInputId);
+                if (el) { el.removeAttribute('inputmode'); el.classList.remove('keypad-active'); }
+            }
+            activeInputId = null; 
+            document.getElementById('virtual-keypad').style.display = 'none';
+        }
+
+        // 當由系統返回鍵觸發時，同步關閉畫面上的多餘彈窗
+        function hideModalsAboveStep(step) {
+            const toClose = activeModalsStack.filter(m => m.step > step);
+            toClose.forEach(m => {
+                const el = document.getElementById(m.id);
+                if (el) el.style.display = 'none';
+            });
+            activeModalsStack = activeModalsStack.filter(m => m.step <= step);
+            closeKeypadDOMOnly(); // 只要有退層，鍵盤一律收合
         }
 
         function closeAllModals() {
             activeModalsStack.forEach(m => {
                 const el = document.getElementById(m.id);
-                if(el) el.style.display = 'none';
+                if (el) el.style.display = 'none';
             });
             activeModalsStack = [];
-            closeKeypad();
-        }
-
-        function hideModalsAboveStep(step) {
-            activeModalsStack = activeModalsStack.filter(m => {
-                if (m.step > step) {
-                    const el = document.getElementById(m.id);
-                    if(el) el.style.display = 'none';
-                    return false;
-                }
-                return true;
-            });
-            if (activeModalsStack.length === 0) closeKeypad();
+            closeKeypadDOMOnly();
         }
 
         // 【駭客級別】單檔 PWA 註冊與路徑清理
@@ -862,7 +872,7 @@
             }
         }
 
-        function closePopupModal(modalId) { trackModalClose(modalId); closeKeypad(); }
+        function closePopupModal(modalId) { trackModalClose(modalId); }
 
         function handleInput(el) {
             let val = el.value.replace(/\D/g, '');
@@ -884,7 +894,6 @@
             if (currentYearPageStart < 0) currentYearPageStart = 0;
             renderExpiryGrids();
             trackModalOpen('expiry-modal');
-            closeKeypad();
         }
 
         function changeYearPage(dir) { currentYearPageStart = Math.max(0, Math.min(88, currentYearPageStart + (dir * 12))); renderExpiryGrids(); }
@@ -961,7 +970,8 @@
             document.getElementById('expense-amount').value = '';
             document.getElementById('expense-note').value = '';
             document.getElementById('btn-save-expense').innerText = '💾 儲存';
-            renderExpenseList(data.card, getCycleInfo(data.card)); closeKeypad();
+            renderExpenseList(data.card, getCycleInfo(data.card)); 
+            closeKeypad(); // 僅收合虛擬鍵盤，不關閉記帳視窗
         }
 
         function editExpenseRecord(expId) {
@@ -1026,7 +1036,7 @@
             trackModalOpen('form-modal');
         }
 
-        function closeModal() { trackModalClose('form-modal'); closeKeypad(); }
+        function closeModal() { trackModalClose('form-modal'); }
 
         function editCard(id, event) {
             if (event) event.stopPropagation();
@@ -1121,14 +1131,22 @@
             activeInputId = inputId; document.getElementById('virtual-keypad').style.display = 'grid';
             const el = document.getElementById(inputId);
             if (el) { el.setAttribute('inputmode', 'none'); el.classList.add('keypad-active'); el.focus(); setTimeout(() => el.scrollIntoView({ behavior: 'smooth', block: 'center' }), 100); }
+            
+            // 將虛擬鍵盤推入歷史層級，確保按返回能單獨收起鍵盤
+            if (history.state && history.state.type !== 'keypad') {
+                currentStep++;
+                history.pushState({ step: currentStep, type: 'keypad' }, '');
+            }
         }
 
         function closeKeypad() {
-            if (activeInputId) {
-                const el = document.getElementById(activeInputId);
-                if (el) { el.removeAttribute('inputmode'); el.classList.remove('keypad-active'); }
+            if (history.state && history.state.type === 'keypad') {
+                // 如果目前是鍵盤歷史層，驅動 popstate 往回退
+                closeKeypadDOMOnly();
+                history.back();
+            } else {
+                closeKeypadDOMOnly();
             }
-            activeInputId = null; document.getElementById('virtual-keypad').style.display = 'none';
         }
 
         document.addEventListener('focusin', e => {
@@ -1174,3 +1192,5 @@
     </script>
 </body>
 </html>
+
+
