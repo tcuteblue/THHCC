@@ -115,7 +115,7 @@
         .card-label { font-size: 12px; opacity: .85; }
         .card-value { font-family: 'Courier New', Courier, monospace; font-size: 17px; letter-spacing: 1.5px; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
         
-        /* 發卡組織浮水印樣式 - 修復層級使其不被遮擋 */
+        /* 發卡組織浮水印樣式 */
         .org-logo { position: absolute; bottom: 15px; right: 20px; font-size: 26px; font-weight: 900; font-style: italic; opacity: .8; text-shadow: 0 2px 5px rgba(0, 0, 0, .4); z-index: 10; pointer-events: none; }
 
         .copy-btn {
@@ -125,7 +125,8 @@
         }
         .copy-btn:active { transform: translateY(2px); box-shadow: 0 0 2px rgba(0, 0, 0, .1); }
 
-        .action-row { display: flex; flex-wrap: wrap; justify-content: space-between; margin-top: 15px; gap: 8px; }
+        /* 【修復】為按鈕列加入 padding-right，避免跟發卡組織文字重疊 */
+        .action-row { display: flex; flex-wrap: wrap; justify-content: flex-start; margin-top: 15px; gap: 8px; padding-right: 70px; }
 
         /* Bank Colors */
         .bank-中信 { background: linear-gradient(135deg, #00B4B5, #005051); }
@@ -153,7 +154,16 @@
         .bank-台企銀 { background: linear-gradient(135deg, #F39C12, #935116); }
         .bank-上海 { background: linear-gradient(135deg, #E62E04, #871900); }
         .bank-渣打 { background: linear-gradient(135deg, #3498DB, #154360); }
+        
+        /* 【修復】補齊漏網的銀行專屬顏色，避免卡片變透明 */
+        .bank-王道 { background: linear-gradient(135deg, #F59E0B, #D97706); }
         .bank-將來 { background: linear-gradient(135deg, #F1C40F, #9A7D0A); }
+        .bank-高雄 { background: linear-gradient(135deg, #10B981, #047857); }
+        .bank-台中 { background: linear-gradient(135deg, #EF4444, #B91C1C); }
+        .bank-安泰 { background: linear-gradient(135deg, #F87171, #DC2626); }
+        .bank-板信 { background: linear-gradient(135deg, #14B8A6, #0F766E); }
+        .bank-陽信 { background: linear-gradient(135deg, #3B82F6, #1D4ED8); }
+        .bank-華泰 { background: linear-gradient(135deg, #8B5CF6, #6D28D9); }
         .bank-default { background: linear-gradient(135deg, #7F8FA6, #2F3640); }
 
         .modal {
@@ -544,12 +554,15 @@
         history.replaceState({ app: 'base' }, '');
         history.pushState({ app: 'active' }, '');
 
-        // 確保首次開啟 APP 時，若無操作也具備返回攔截能力
-        document.body.addEventListener('click', () => {
+        const initHistory = () => {
             if (!history.state || history.state.app !== 'active') {
                 history.pushState({ app: 'active' }, '');
             }
-        }, { once: true });
+        };
+
+        // 【修復】確保首次開啟 APP 時，只要有點擊或觸碰，就啟動返回攔截，防止一開始按返回就跳出
+        document.body.addEventListener('click', initHistory, { once: true });
+        document.body.addEventListener('touchstart', initHistory, { once: true });
 
         window.addEventListener('popstate', function(event) {
             // 如果是程式手動關閉彈窗觸發的返回，直接忽略
@@ -569,9 +582,12 @@
             } else {
                 // 主畫面按返回，跳出確認框
                 if (confirm('確定要退出信用卡夾嗎？')) {
-                    history.back(); // 真正退出 APP
+                    // 確定退出，讓原生 history 繼續回退，或嘗試關閉視窗
+                    try { window.close(); } catch(e) {}
+                    history.back(); 
                 } else {
-                    history.pushState({ app: 'active' }, ''); // 補回狀態，留在 APP
+                    // 【修復】取消退出：重新補回一個歷史紀錄，完美把使用者留在程式裡
+                    history.pushState({ app: 'active' }, '');
                 }
             }
         });
@@ -789,6 +805,7 @@
                 
                 const orgDisplay = (card.org && card.org !== "待查") ? card.org : "";
 
+                // 【修復】移除全複製按鈕自動拉長的寬度，避免與組織字樣重疊
                 wrapper.innerHTML = `
                 <div class="card bank-${card.bank}${isCancelled ? ' cancelled' : ''}" onclick="toggleStackCard(this, event)">
                     ${isCancelled ? `<div class="cancelled-stamp">✂️ 已剪卡</div>` : ''}
@@ -801,10 +818,10 @@
                         </div>
                         ${card.etype !== '無' ? `<div class="card-row"><div><span class="card-label">${card.etype}：</span><span class="card-value">${formatCC(card.eticket)}</span></div><button class="copy-btn" onclick="copyText('${card.eticket}', event)">複製</button></div>` : ''} 
                         ${spendHtml}
-                        <div class="action-row" style="position: relative; z-index: 2;">
+                        <div class="action-row">
                             ${card.note ? `<button class="copy-btn" style="background:rgba(255,255,255,0.25); font-weight:bold;" onclick="openNoteModal('${card.id}', event)">📝 備註</button>` : ''} 
                             <button class="copy-btn" style="background:rgba(255,255,255,0.25); font-weight:bold;" onclick="openExpenseModal('${card.id}', event)">💵 記帳明細</button>
-                            <button class="copy-btn" style="background:rgba(255,255,255,0.85); color:#2c3e50; font-weight:bold; flex:1;" onclick="copyAll('${card.no}', '${card.expiry}', '${card.cvv}', event)">📋 全複製</button>
+                            <button class="copy-btn" style="background:rgba(255,255,255,0.85); color:#2c3e50; font-weight:bold; padding: 6px 12px;" onclick="copyAll('${card.no}', '${card.expiry}', '${card.cvv}', event)">📋 全複製</button>
                         </div>
                     </div><div class="org-logo">${orgDisplay}</div>
                 </div>`;
