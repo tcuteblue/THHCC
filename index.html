@@ -521,30 +521,41 @@
         history.pushState({ step: 1, type: 'main', id: Date.now() }, '');
         let currentStep = 1;
         let activeModalsStack = []; // 紀錄開啟中的彈窗與其所在的階層
+        let isExiting = false;
 
         // 【防呆加固】處理部分瀏覽器無互動不允許攔截的限制
-        const initAppHistory = () => {};
-        document.body.addEventListener('touchstart', initAppHistory, { passive: true, once: true });
-        document.body.addEventListener('click', initAppHistory, { passive: true, once: true });
+        const initAppHistory = () => { isExiting = false; };
+        document.body.addEventListener('touchstart', initAppHistory, { passive: true });
+        document.body.addEventListener('click', initAppHistory, { passive: true });
 
         // 系統返回鍵監聽核心邏輯
         window.addEventListener('popstate', function(event) {
+            if (isExiting) return; // 正在執行退出程序中，放行所有歷史返回行為
+
             const state = event.state;
             if (!state) return;
 
             currentStep = state.step || 1;
 
             if (state.type === 'base') {
-                // 退到最底層：改用「同步攔截」，鎖死瀏覽器的非同步跳轉漏洞
-                if (confirm('確定要退出信用卡夾嗎？')) {
-                    // 確定退出：呼叫單次回退，原生退出 APP
-                    try { window.close(); } catch(e) {}
-                    setTimeout(() => { history.back(); }, 10);
-                } else {
-                    // 取消退出：在此刻確實推回 main 狀態，完美駐留，不會失效
-                    history.pushState({ step: 1, type: 'main', id: Date.now() }, '');
-                    currentStep = 1;
-                }
+                // 核心解法：先補回歷史紀錄，鎖死退路，保證取消後仍可再次觸發
+                history.pushState({ step: 1, type: 'main', id: Date.now() }, '');
+                currentStep = 1;
+
+                setTimeout(() => {
+                    if (confirm('確定要退出信用卡夾嗎？')) {
+                        isExiting = true;
+                        // 1. 嘗試直接關閉視窗 (適用於部分 PWA 模式或電腦版)
+                        try { window.close(); } catch(e) {}
+                        
+                        // 2. 原生退出 PWA 解法：連續兩次 back 突破底層
+                        history.back(); // 先退回 base
+                        setTimeout(() => {
+                            history.back(); // 再退一次直接交給作業系統關閉 APP
+                        }, 50);
+                    }
+                    // 若按取消：什麼都不用做，因為上面 history.pushState 已經把狀態推回 main 了！完全無縫停留。
+                }, 10);
             } else if (state.type === 'main') {
                 // 退回主畫面：確保所有彈窗與鍵盤確實關閉
                 closeAllModals();
@@ -552,7 +563,7 @@
                 // 退回某層彈窗：關閉所有比這層「更高層」的彈窗與鍵盤
                 hideModalsAboveStep(state.step);
             } else if (state.type === 'keypad') {
-                // 在虛擬鍵盤層 (不需要特別處理，交由隱藏邏輯處理)
+                // 虛擬鍵盤層 (由統一的 hideModals / closeKeypadDOMOnly 處理)
             }
         });
 
