@@ -521,46 +521,30 @@
         history.pushState({ step: 1, type: 'main', id: Date.now() }, '');
         let currentStep = 1;
         let activeModalsStack = []; // 紀錄開啟中的彈窗與其所在的階層
-        let isExiting = false;
 
-        // 【防呆加固】處理部分瀏覽器 (如 iOS/Chrome) 限制。
-        // 如果退出失敗，只要使用者再次觸碰螢幕，就重新啟用防呆，完美應對各種異常
-        const initAppHistory = () => {
-            isExiting = false; 
-        };
-        document.body.addEventListener('touchstart', initAppHistory, { passive: true });
-        document.body.addEventListener('click', initAppHistory, { passive: true });
+        // 【防呆加固】處理部分瀏覽器無互動不允許攔截的限制
+        const initAppHistory = () => {};
+        document.body.addEventListener('touchstart', initAppHistory, { passive: true, once: true });
+        document.body.addEventListener('click', initAppHistory, { passive: true, once: true });
 
         // 系統返回鍵監聽核心邏輯
         window.addEventListener('popstate', function(event) {
-            if (isExiting) return; // 正在執行退出程序中，放行所有歷史返回行為
-
             const state = event.state;
             if (!state) return;
 
             currentStep = state.step || 1;
 
             if (state.type === 'base') {
-                // 【關鍵修復】立刻推回 main 狀態，完美困住返回鍵！
-                // 這樣如果使用者按取消，我們已經在原位，第二次按返回鍵也能再次攔截。
-                history.pushState({ step: 1, type: 'main', id: Date.now() }, '');
-                currentStep = 1;
-
-                // 非同步詢問，確保歷史紀錄已經穩定寫入
-                setTimeout(() => {
-                    if (confirm('確定要退出信用卡夾嗎？')) {
-                        isExiting = true;
-                        
-                        // 1. 嘗試直接關閉視窗 (適用於部分 PWA 或桌面端)
-                        try { window.close(); } catch(e) {}
-                        
-                        // 2. 完美退出方案：連續執行兩次 back (不顯示白畫面)
-                        // 第 1 次：從 main 退回 base
-                        // 第 2 次 (延遲觸發)：從 base 退回作業系統桌面，達成完美關閉 APP
-                        history.back();
-                        setTimeout(() => { history.back(); }, 50);
-                    }
-                }, 10);
+                // 退到最底層：改用「同步攔截」，鎖死瀏覽器的非同步跳轉漏洞
+                if (confirm('確定要退出信用卡夾嗎？')) {
+                    // 確定退出：呼叫單次回退，原生退出 APP
+                    try { window.close(); } catch(e) {}
+                    setTimeout(() => { history.back(); }, 10);
+                } else {
+                    // 取消退出：在此刻確實推回 main 狀態，完美駐留，不會失效
+                    history.pushState({ step: 1, type: 'main', id: Date.now() }, '');
+                    currentStep = 1;
+                }
             } else if (state.type === 'main') {
                 // 退回主畫面：確保所有彈窗與鍵盤確實關閉
                 closeAllModals();
