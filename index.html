@@ -79,10 +79,12 @@
         #card-container { padding: 15px 15px 20px 15px; min-height: calc(100vh - 170px); }
 
         .list-view { display: flex; flex-direction: column; gap: 20px; }
-        .stack-view { position: relative; padding-top: 10px; }
+        
+        /* 堆疊模式最佳化 */
+        .stack-view { position: relative; padding-top: 10px; padding-bottom: 250px !important; }
         .stack-view .card-wrapper { position: absolute; width: calc(100% - 30px); transition: all .4s cubic-bezier(.34, 1.56, .64, 1); cursor: pointer; }
         .stack-view .card-wrapper:not(.expanded) { height: 65px; overflow: hidden; box-shadow: 0 -3px 8px rgba(0, 0, 0, .15); transform: scale(.98); }
-        .stack-view .card-wrapper.expanded { position: relative; z-index: 50; margin-bottom: 25px; box-shadow: 0 15px 35px rgba(0, 0, 0, .25); transform: scale(1); }
+        .stack-view .card-wrapper.expanded { position: absolute; z-index: 50 !important; height: auto; box-shadow: 0 25px 50px rgba(0, 0, 0, .5); transform: scale(1.02) translateY(-10px); }
 
         .card {
             border-radius: 18px; padding: 20px; color: #fff; position: relative;
@@ -113,8 +115,8 @@
         .card-label { font-size: 12px; opacity: .85; }
         .card-value { font-family: 'Courier New', Courier, monospace; font-size: 17px; letter-spacing: 1.5px; font-weight: 700; text-shadow: 0 1px 2px rgba(0, 0, 0, .3); }
         
-        /* 發卡組織浮水印樣式 */
-        .org-logo { position: absolute; bottom: 15px; right: 20px; font-size: 26px; font-weight: 900; font-style: italic; opacity: .8; text-shadow: 0 2px 5px rgba(0, 0, 0, .4); z-index: 1; pointer-events: none; }
+        /* 發卡組織浮水印樣式 - 修復層級使其不被遮擋 */
+        .org-logo { position: absolute; bottom: 15px; right: 20px; font-size: 26px; font-weight: 900; font-style: italic; opacity: .8; text-shadow: 0 2px 5px rgba(0, 0, 0, .4); z-index: 10; pointer-events: none; }
 
         .copy-btn {
             background: rgba(255, 255, 255, .2); border: 1px solid rgba(255, 255, 255, .3);
@@ -505,7 +507,8 @@
 
     <script>
         let deferredPrompt = null;
-        let activeModals = []; // 追蹤目前開啟的彈窗，用於返回鍵邏輯
+        let activeModals = []; // 追蹤目前開啟的彈窗
+        let isProgrammaticBack = false; // 追蹤是否為程式主動觸發的返回
 
         // 【駭客級別】單檔 PWA 註冊與路徑清理
         function setupPWA() {
@@ -537,48 +540,57 @@
         }
         setupPWA();
 
-        // 【核心功能】系統返回鍵攔截邏輯
+        // 【核心功能】系統返回鍵攔截邏輯與防呆
+        history.replaceState({ app: 'base' }, '');
+        history.pushState({ app: 'active' }, '');
+
+        // 確保首次開啟 APP 時，若無操作也具備返回攔截能力
+        document.body.addEventListener('click', () => {
+            if (!history.state || history.state.app !== 'active') {
+                history.pushState({ app: 'active' }, '');
+            }
+        }, { once: true });
+
         window.addEventListener('popstate', function(event) {
+            // 如果是程式手動關閉彈窗觸發的返回，直接忽略
+            if (isProgrammaticBack) {
+                isProgrammaticBack = false;
+                return;
+            }
+            
             if (activeModals.length > 0) {
-                // 如果有開啟的彈窗，則關閉最上層的彈窗，並阻止退出 APP
+                // 如果有開啟的彈窗，按返回則關閉最上層彈窗
                 const modalIdToClose = activeModals.pop();
                 document.getElementById(modalIdToClose).style.display = 'none';
                 if (modalIdToClose === 'form-modal' || modalIdToClose === 'settings-modal') closeKeypad();
                 
-                // 如果關閉後還有其他彈窗，再推入一個狀態防止下次返回直接退出
-                if (activeModals.length > 0) {
-                    history.pushState({ modalOpen: true }, '');
-                }
+                // 為了下次按返回不會直接退出，重新補回一個阻擋狀態
+                history.pushState({ app: 'active' }, '');
             } else {
-                // 如果沒有任何彈窗開啟（代表在首頁），跳出確認退出的提示
+                // 主畫面按返回，跳出確認框
                 if (confirm('確定要退出信用卡夾嗎？')) {
-                    // 若同意，由於已經觸發 popstate，系統會自然退出
+                    history.back(); // 真正退出 APP
                 } else {
-                    // 若取消退出，需重新推入一個狀態，否則下次按返回會直接退出且不觸發 popstate
-                    history.pushState(null, '', window.location.href);
+                    history.pushState({ app: 'active' }, ''); // 補回狀態，留在 APP
                 }
             }
         });
 
-        // 推入初始狀態，作為基底
-        history.pushState(null, '', window.location.href);
-
-        // 輔助函數：開啟彈窗時推入狀態並記錄
+        // 輔助函數：開啟彈窗
         function trackModalOpen(modalId) {
             document.getElementById(modalId).style.display = (modalId === 'form-modal' || modalId === 'settings-modal') ? 'block' : 'flex';
             activeModals.push(modalId);
-            history.pushState({ modalOpen: true }, '');
+            history.pushState({ app: 'modal' }, '');
         }
 
-        // 輔助函數：手動關閉彈窗時同步狀態
+        // 輔助函數：程式主動關閉彈窗 (例如按 X 按鈕)
         function trackModalClose(modalId) {
             document.getElementById(modalId).style.display = 'none';
             const index = activeModals.indexOf(modalId);
             if (index > -1) {
                 activeModals.splice(index, 1);
-                // 為了保持 history 乾淨，我們手動觸發 back，這會觸發 popstate，但在那邊我們需要處理重複關閉的邏輯
-                // 簡單起見，我們直接 back()，讓 popstate 去處理實際的關閉
-                history.back();
+                isProgrammaticBack = true;
+                history.back(); // 消除這層歷史紀錄
             }
         }
 
@@ -633,6 +645,7 @@
                 if (card.bank === '中國信託') { card.bank = '中信'; migrated = true; }
                 if (card.bank === '國泰世華') { card.bank = '國泰'; migrated = true; }
                 if (!card.status) { card.status = 'active'; migrated = true; }
+                if (!card.org) { card.org = '待查'; migrated = true; } // 補上舊版無組織的預設值
                 if (!card.expenses) { card.expenses = []; migrated = true; }
                 if (card.currentSpend !== undefined && card.expenses.length === 0) {
                     card.expenses.push({ id: generateId(), timestamp: Date.now(), amount: card.currentSpend, note: '期初結轉' });
@@ -774,7 +787,6 @@
                     spendHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; font-size:12px; position: relative; z-index: 2;"><div style="font-size:11px; color:#d1d8e0; margin-bottom:4px;">帳單月: ${cycleStr}</div><span>累積消費: <strong style="font-size:15px;">$${formatMoney(currentSpend)}</strong></span></div>`;
                 }
                 
-                // 發卡組織浮水印 (確保為預設值或已輸入值)
                 const orgDisplay = (card.org && card.org !== "待查") ? card.org : "";
 
                 wrapper.innerHTML = `
