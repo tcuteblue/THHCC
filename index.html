@@ -235,6 +235,14 @@
         }
         .expiry-btn:active { box-shadow: 0 0 0 #b2bec3 !important; transform: translateY(3px); background: #f1f2f6; }
         .expiry-btn.active { background: #eef7fc; border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary); }
+        /* 雙重備份 2x2 對稱按鈕排版 */
+        .backup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
+        .btn-grid { padding: 16px 8px; border-radius: 16px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; text-align: center; box-shadow: 0 4px 0 rgba(0,0,0,0.15); transition: all 0.1s; display: flex; justify-content: center; align-items: center; gap: 6px; }
+        .btn-grid:active { transform: translateY(4px); box-shadow: 0 0 0 transparent; }
+        .btn-c-bak { background: linear-gradient(135deg, #3498db, #2980b9); color: white; }
+        .btn-c-res { background: linear-gradient(135deg, #16a085, #1abc9c); color: white; }
+        .btn-l-bak { background: linear-gradient(135deg, #607D8B, #455A64); color: white; }
+        .btn-l-res { background: linear-gradient(135deg, #a2d9ce, #73c6b6); color: #0b5345; }
     </style>
 </head>
 
@@ -277,21 +285,27 @@
             <h3 style="margin:0">程式設定</h3>
             <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closeSettings()">✖</button>
         </div>
+        
         <div class="form-group" style="margin-top:10px">
-            <label>資料備份與匯出</label>
-            <div class="flex-row">
-                <button class="btn-primary" style="flex:1;box-shadow:0 3px 0 #005f8d" onclick="exportData('json')">📥 匯出備份檔</button>
-                <button class="btn-outline" style="flex:1;box-shadow:0 3px 0 var(--primary)" onclick="exportData('txt')">📄 匯出文字檔</button>
+            <label style="display:block; font-size:18px; font-weight:900; text-align:center; color:#7f8fa6; margin-bottom: 10px;">資料備份還原</label>
+            
+            <div style="text-align: center; font-size: 13px; color: #95a5a6; margin-bottom: 5px;" id="cloud-last-time">
+                ☁️ 最新雲端備份：尚未備份
             </div>
-            <small style="color:#7f8c8d;display:block;margin-top:8px">備份檔(JSON)用於系統還原；文字檔(TXT)用於瀏覽閱讀。</small>
-        </div>
-        <hr style="border:0;border-top:1px dashed #ccc;margin:25px 20px">
-        <div class="form-group">
-            <label>還原備份檔</label>
-            <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="width:100%;padding:12px">
-            <div style="background:#ffefef;padding:10px;border-radius:8px;margin-top:10px;border-left:4px solid #ff4757">
-                <small style="color:#e74c3c;display:block;font-weight:700">⚠️ 警告：還原將會完全覆蓋目前的卡片資料。</small>
+
+            <div class="backup-grid">
+                <button class="btn-grid btn-c-bak" id="btn-cloud-backup" onclick="cloudBackup()">☁️ 雲端備份</button>
+                <button class="btn-grid btn-c-res" id="btn-cloud-restore" onclick="cloudRestore()">🔄 雲端還原</button>
+                <button class="btn-grid btn-l-bak" onclick="exportData('json')">📥 本機備份</button>
+                <button class="btn-grid btn-l-res" onclick="document.getElementById('import-file').click()">📤 本機還原</button>
             </div>
+            
+            <div style="text-align:center; margin-top:15px;">
+                <button class="btn-outline" style="box-shadow:0 3px 0 var(--primary)" onclick="exportData('txt')">📄 匯出純文字清單 (TXT)</button>
+            </div>
+
+            <!-- 隱藏的還原檔案輸入 -->
+            <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="display:none;">
         </div>
     </div>
 
@@ -657,6 +671,12 @@
         let currentEditingTiers = [];
         let tempSelectedMonth = '', tempSelectedYear = '', currentYearPageStart = 0;
 
+        // 👇👇👇 新增的雲端備份變數 👇👇👇
+        const GAS_URL = 'https://script.google.com/macros/s/AKfycbw0wAnCPZkw3nlyx0Eg08Ejk49oG_itD82PqH9IP4X7S4oR5br1NTCmlUJsNfME2kbZ/exec';
+        let isCloudSyncing = false;
+        let cloudBackupTimer = null;
+        // 👆👆👆 新增結束 👆👆👆
+
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault(); deferredPrompt = e;
             const btn = document.getElementById('install-top-btn');
@@ -712,6 +732,7 @@
             if (migrated) saveAndBackup();
             
             updateBackupStatus(localStorage.getItem('lastBackupTime'));
+            document.getElementById('cloud-last-time').innerText = '☁️ 最新雲端備份：' + (localStorage.getItem('CloudLastBackupTime') || '尚未備份');
             renderCards();
         };
 
@@ -1096,8 +1117,107 @@
             const timeStr = new Date().toLocaleString('zh-TW');
             localStorage.setItem('lastBackupTime', timeStr);
             updateBackupStatus(timeStr); exportData('json', true);
+            // 👇 新增這行：只要存檔，就觸發雲端防抖備份
+            triggerCloudAutoBackup();
+        }
+        // 👇👇👇 以下為新增的雲端備份核心邏輯 👇👇👇
+        
+        function triggerCloudAutoBackup() {
+            clearTimeout(cloudBackupTimer);
+            // 等待 3 秒鐘無動作，才執行背景雲端備份
+            cloudBackupTimer = setTimeout(() => {
+                cloudBackup(true); 
+            }, 3000); 
         }
 
+        async function cloudBackup(isAuto = false) {
+            if (isCloudSyncing) return;
+            
+            if (!isAuto) {
+                isCloudSyncing = true;
+                const btn = document.getElementById('btn-cloud-backup');
+                if (btn) btn.innerText = '⏳ 備份中...';
+            }
+
+            try {
+                const payload = {
+                    action: "auto_backup",
+                    fileName: "信用卡夾_雲端備份.json", // 針對信用卡夾的檔名
+                    backupData: { 
+                        cards: cards // 備份信用卡陣列
+                    } 
+                };
+                
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                
+                const result = await response.json();
+                
+                if (result.status === 'success') {
+                    const timeStr = new Date().toLocaleString('zh-TW');
+                    localStorage.setItem('CloudLastBackupTime', timeStr);
+                    const timeDisplay = document.getElementById('cloud-last-time');
+                    if (timeDisplay) timeDisplay.innerText = '☁️ 最新雲端備份：' + timeStr;
+                    
+                    if (!isAuto) alert("✅ 雲端備份成功！"); 
+                } else {
+                    throw new Error(result.message);
+                }
+            } catch (e) {
+                if (!isAuto) alert("❌ 雲端備份失敗：" + e.message);
+            } finally {
+                if (!isAuto) {
+                    isCloudSyncing = false;
+                    const btn = document.getElementById('btn-cloud-backup');
+                    if (btn) btn.innerText = '☁️ 雲端備份';
+                }
+            }
+        }
+
+        async function cloudRestore() {
+            if (isCloudSyncing) return;
+            if (!confirm("⚠️ 警告：雲端還原將會完全覆蓋您目前的本機卡片資料！\n\n確定要進行還原嗎？")) return;
+
+            isCloudSyncing = true;
+            const btn = document.getElementById('btn-cloud-restore');
+            if (btn) btn.innerText = '⏳ 還原中...';
+
+            try {
+                const payload = { action: "restore_from_cloud", fileName: "信用卡夾_雲端備份.json" };
+                const response = await fetch(GAS_URL, {
+                    method: 'POST',
+                    body: JSON.stringify(payload),
+                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                });
+                const result = await response.json();
+
+                if (result.status === 'success' && result.data) {
+                    const cloudData = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
+                    
+                    if (cloudData && cloudData.cards && Array.isArray(cloudData.cards)) {
+                        cards = cloudData.cards;
+                        // 還原後，只存入本機，不觸發匯出備份，避免死迴圈
+                        localStorage.setItem('creditCards', JSON.stringify(cards));
+                        renderCards();
+                        closeSettings();
+                        alert("✅ 雲端資料已成功還原！"); 
+                    } else {
+                        throw new Error("雲端備份檔格式不正確");
+                    }
+                } else {
+                    throw new Error(result.message || "雲端找不到備份檔");
+                }
+            } catch (e) {
+                alert("❌ 還原失敗：" + e.message);
+            } finally {
+                isCloudSyncing = false;
+                if (btn) btn.innerText = '🔄 雲端還原';
+            }
+        }
+        // 👆👆👆 雲端備份核心邏輯結束 👆👆👆
         function updateBackupStatus(timeStr) { if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`; }
 
         function exportData(type, isAuto = false) {
@@ -1119,6 +1239,14 @@
                 });
                 filename = `信用卡夾程式清單_${timeKey}.txt`; mimeType = 'text/plain';
             }
+            
+            // 👇 就是這裡做了修改：加上 if (!isAuto) 讓它不會自動彈出下載
+            if (!isAuto) {
+                const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
+                a.download = filename; a.click(); URL.revokeObjectURL(a.href);
+                alert(`✅ 已成功匯出${type === 'json' ? '備份檔 (JSON)' : '文字檔 (TXT)'}！\n\n檔名：${filename}\n請至您的「下載」資料夾中查看。`);
+            }
+        }
             
             const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
             a.download = filename; a.click(); URL.revokeObjectURL(a.href);
