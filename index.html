@@ -235,6 +235,7 @@
         }
         .expiry-btn:active { box-shadow: 0 0 0 #b2bec3 !important; transform: translateY(3px); background: #f1f2f6; }
         .expiry-btn.active { background: #eef7fc; border-color: var(--primary); color: var(--primary-dark); box-shadow: 0 3px 0 var(--primary); }
+
         /* 雙重備份 2x2 對稱按鈕排版 */
         .backup-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 15px; }
         .btn-grid { padding: 16px 8px; border-radius: 16px; font-size: 16px; font-weight: 900; border: none; cursor: pointer; text-align: center; box-shadow: 0 4px 0 rgba(0,0,0,0.15); transition: all 0.1s; display: flex; justify-content: center; align-items: center; gap: 6px; }
@@ -671,11 +672,10 @@
         let currentEditingTiers = [];
         let tempSelectedMonth = '', tempSelectedYear = '', currentYearPageStart = 0;
 
-        // 👇👇👇 新增的雲端備份變數 👇👇👇
+        // 👇 新增的雲端備份變數
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbw0wAnCPZkw3nlyx0Eg08Ejk49oG_itD82PqH9IP4X7S4oR5br1NTCmlUJsNfME2kbZ/exec';
         let isCloudSyncing = false;
         let cloudBackupTimer = null;
-        // 👆👆👆 新增結束 👆👆👆
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault(); deferredPrompt = e;
@@ -732,7 +732,12 @@
             if (migrated) saveAndBackup();
             
             updateBackupStatus(localStorage.getItem('lastBackupTime'));
-            document.getElementById('cloud-last-time').innerText = '☁️ 最新雲端備份：' + (localStorage.getItem('CloudLastBackupTime') || '尚未備份');
+            
+            // 👇 初始化顯示雲端備份時間
+            const cloudLast = localStorage.getItem('CloudLastBackupTime');
+            const cloudTimeDisplay = document.getElementById('cloud-last-time');
+            if (cloudTimeDisplay) cloudTimeDisplay.innerText = '☁️ 最新雲端備份：' + (cloudLast || '尚未備份');
+
             renderCards();
         };
 
@@ -859,7 +864,7 @@
                 if (card.tiers && card.tiers.length > 0) {
                     let rInfo = calculateReward(currentSpend, card.tiers);
                     let percentage = rInfo.maxLimit === null ? 0 : Math.min(100, (currentSpend / rInfo.maxLimit) * 100);
-                    spendHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; position: relative; z-index: 2;"><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#d1d8e0;"><span>帳單月: ${cycleStr}</span></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;"><span>累積: <strong style="font-size:15px;">$${formatMoney(currentSpend)}</strong> / $${rInfo.maxLimit === null ? '無上限' : formatMoney(rInfo.maxLimit)}</span><span style="color:#ffd32a; font-weight:bold;">回饋: $${formatMoney(rInfo.reward)}</span></div>${rInfo.maxLimit !== null ? `<div style="width:100%; background:rgba(255,255,255,0.15); height:8px; border-radius:4px; overflow:hidden;"><div style="width:${percentage}%; background:${percentage >= 100 ? '#ff4757' : '#2ed573'}; height:100%;"></div></div>` : ''}</div>`;
+                    spendHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 14px; border-radius: 12px; position: relative; z-index: 2;"><div style="display:flex; justify-content:space-between; font-size:11px; margin-bottom:5px; color:#d1d8e0;"><span>帳單月: ${cycleStr}</span></div><div style="display:flex; justify-content:space-between; font-size:12px; margin-bottom:10px;"><span>累積: <strong style="font-size:15px;">$${formatMoney(currentSpend)}</strong> / $${rInfo.maxLimit === null ? '無上限' : formatMoney(rInfo.maxLimit)}</span><span style="color:#ffd32a; font-weight:bold;">回饋: $${formatMoney(rInfo.reward)}</span></div>${rInfo.maxLimit !== null ? `<div style="width:100%; background:rgba(255,255,255,0.15); height:8px; border-radius:4px; overflow:hidden;"><div style="width:${percentage}\%; background:${percentage >= 100 ? '#ff4757' : '#2ed573'}; height:100%;"></div></div>` : ''}</div>`;
                 } else if (currentSpend > 0) {
                     spendHtml = `<div style="margin-top: 15px; background: rgba(0,0,0,0.3); padding: 12px; border-radius: 12px; font-size:12px; position: relative; z-index: 2;"><div style="font-size:11px; color:#d1d8e0; margin-bottom:4px;">帳單月: ${cycleStr}</div><span>累積消費: <strong style="font-size:15px;">$${formatMoney(currentSpend)}</strong></span></div>`;
                 }
@@ -1112,22 +1117,25 @@
         function openSettings() { trackModalOpen('settings-modal'); }
         function closeSettings() { trackModalClose('settings-modal'); document.getElementById('import-file').value = ''; }
 
+        // 👇 觸發存檔與雲端備份
         function saveAndBackup() {
             localStorage.setItem('creditCards', JSON.stringify(cards));
             const timeStr = new Date().toLocaleString('zh-TW');
             localStorage.setItem('lastBackupTime', timeStr);
-            updateBackupStatus(timeStr); exportData('json', true);
-            // 👇 新增這行：只要存檔，就觸發雲端防抖備份
-            triggerCloudAutoBackup();
+            updateBackupStatus(timeStr); 
+            exportData('json', true);
+            
+            triggerCloudAutoBackup(); // 每次存檔或記帳時，觸發防抖雲端備份
         }
-        // 👇👇👇 以下為新增的雲端備份核心邏輯 👇👇👇
-        
+
+        function updateBackupStatus(timeStr) { if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`; }
+
+        // 👇 雲端防抖備份邏輯
         function triggerCloudAutoBackup() {
             clearTimeout(cloudBackupTimer);
-            // 等待 3 秒鐘無動作，才執行背景雲端備份
             cloudBackupTimer = setTimeout(() => {
                 cloudBackup(true); 
-            }, 3000); 
+            }, 3000); // 靜置 3 秒後自動上傳雲端
         }
 
         async function cloudBackup(isAuto = false) {
@@ -1142,10 +1150,8 @@
             try {
                 const payload = {
                     action: "auto_backup",
-                    fileName: "信用卡夾_雲端備份.json", // 針對信用卡夾的檔名
-                    backupData: { 
-                        cards: cards // 備份信用卡陣列
-                    } 
+                    fileName: "信用卡夾_雲端備份.json", 
+                    backupData: { cards: cards } 
                 };
                 
                 const response = await fetch(GAS_URL, {
@@ -1177,6 +1183,7 @@
             }
         }
 
+        // 👇 雲端還原邏輯
         async function cloudRestore() {
             if (isCloudSyncing) return;
             if (!confirm("⚠️ 警告：雲端還原將會完全覆蓋您目前的本機卡片資料！\n\n確定要進行還原嗎？")) return;
@@ -1199,7 +1206,6 @@
                     
                     if (cloudData && cloudData.cards && Array.isArray(cloudData.cards)) {
                         cards = cloudData.cards;
-                        // 還原後，只存入本機，不觸發匯出備份，避免死迴圈
                         localStorage.setItem('creditCards', JSON.stringify(cards));
                         renderCards();
                         closeSettings();
@@ -1217,9 +1223,8 @@
                 if (btn) btn.innerText = '🔄 雲端還原';
             }
         }
-        // 👆👆👆 雲端備份核心邏輯結束 👆👆👆
-        function updateBackupStatus(timeStr) { if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`; }
 
+        // 👇 拔除自動跳出下載的匯出邏輯
         function exportData(type, isAuto = false) {
             if (cards.length === 0 && !isAuto) return alert('沒有資料可匯出');
             const timeKey = getTimestampStr(); let content = '', filename = '', mimeType = '';
@@ -1240,17 +1245,12 @@
                 filename = `信用卡夾程式清單_${timeKey}.txt`; mimeType = 'text/plain';
             }
             
-            // 👇 就是這裡做了修改：加上 if (!isAuto) 讓它不會自動彈出下載
+            // 只有「手動按鈕」才會觸發下載
             if (!isAuto) {
                 const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
                 a.download = filename; a.click(); URL.revokeObjectURL(a.href);
                 alert(`✅ 已成功匯出${type === 'json' ? '備份檔 (JSON)' : '文字檔 (TXT)'}！\n\n檔名：${filename}\n請至您的「下載」資料夾中查看。`);
             }
-        }
-            
-            const a = document.createElement('a'); a.href = URL.createObjectURL(new Blob([content], { type: mimeType }));
-            a.download = filename; a.click(); URL.revokeObjectURL(a.href);
-            if (!isAuto) alert(`✅ 已成功匯出${type === 'json' ? '備份檔 (JSON)' : '文字檔 (TXT)'}！\n\n檔名：${filename}\n請至您的「下載」資料夾中查看。`);
         }
 
         function importData(event) {
@@ -1332,5 +1332,3 @@
     </script>
 </body>
 </html>
-
-
