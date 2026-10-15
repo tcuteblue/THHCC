@@ -1154,13 +1154,24 @@
                     backupData: { cards: cards } 
                 };
                 
+                // 🚀 強化版 fetch：移除自訂 headers，加入 redirect 確保跟隨 Google 轉址
                 const response = await fetch(GAS_URL, {
+                    redirect: "follow",
                     method: 'POST',
-                    body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    body: JSON.stringify(payload)
                 });
                 
-                const result = await response.json();
+                if (!response.ok) throw new Error(`HTTP 狀態碼 ${response.status}`);
+                
+                // 🚀 強化版解析：先抓純文字，避免因為 Google 登入頁面導致 JSON.parse 壞掉
+                const rawText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseErr) {
+                    console.error("GAS 原始回傳內容:", rawText);
+                    throw new Error("收到的不是 JSON 格式 (可能被 Google 登入畫面或系統防火牆攔截)");
+                }
                 
                 if (result.status === 'success') {
                     const timeStr = new Date().toLocaleString('zh-TW');
@@ -1174,6 +1185,7 @@
                 }
             } catch (e) {
                 if (!isAuto) alert("❌ 雲端備份失敗：" + e.message);
+                console.error("雲端備份詳細錯誤:", e);
             } finally {
                 if (!isAuto) {
                     isCloudSyncing = false;
@@ -1183,7 +1195,6 @@
             }
         }
 
-        // 👇 雲端還原邏輯
         async function cloudRestore() {
             if (isCloudSyncing) return;
             if (!confirm("⚠️ 警告：雲端還原將會完全覆蓋您目前的本機卡片資料！\n\n確定要進行還原嗎？")) return;
@@ -1194,14 +1205,27 @@
 
             try {
                 const payload = { action: "restore_from_cloud", fileName: "信用卡夾_雲端備份.json" };
+                
+                // 🚀 同樣強化 fetch 設定
                 const response = await fetch(GAS_URL, {
+                    redirect: "follow",
                     method: 'POST',
-                    body: JSON.stringify(payload),
-                    headers: { 'Content-Type': 'text/plain;charset=utf-8' }
+                    body: JSON.stringify(payload)
                 });
-                const result = await response.json();
+                
+                if (!response.ok) throw new Error(`HTTP 狀態碼 ${response.status}`);
+                
+                const rawText = await response.text();
+                let result;
+                try {
+                    result = JSON.parse(rawText);
+                } catch (parseErr) {
+                    console.error("GAS 原始回傳內容:", rawText);
+                    throw new Error("收到的不是 JSON 格式 (雲端檔案可能已損壞或被攔截)");
+                }
 
                 if (result.status === 'success' && result.data) {
+                    // 支援兩種 JSON 格式，確保相容性
                     const cloudData = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
                     
                     if (cloudData && cloudData.cards && Array.isArray(cloudData.cards)) {
@@ -1211,13 +1235,14 @@
                         closeSettings();
                         alert("✅ 雲端資料已成功還原！"); 
                     } else {
-                        throw new Error("雲端備份檔格式不正確");
+                        throw new Error("雲端備份檔格式不正確，找不到卡片資料");
                     }
                 } else {
                     throw new Error(result.message || "雲端找不到備份檔");
                 }
             } catch (e) {
                 alert("❌ 還原失敗：" + e.message);
+                console.error("雲端還原詳細錯誤:", e);
             } finally {
                 isCloudSyncing = false;
                 if (btn) btn.innerText = '🔄 雲端還原';
