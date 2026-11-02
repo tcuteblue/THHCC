@@ -30,28 +30,70 @@
             #install-btn-container { display: none !important; }
         }
 
-        header {
-            background: linear-gradient(135deg, #2c3e50, #34495e);
-            color: #fff; padding: 10px; font-size: 12px; text-align: center;
-            box-shadow: 0 2px 4px rgba(0, 0, 0, .1); position: relative; z-index: 101;
+        :root { --app-topbar-height: 88px; }
+
+        /* 首頁識別列固定在最上方；設定視窗會從此列下方展開，保留設定按鈕可點擊。 */
+        .app-topbar {
+            position: sticky; top: 0; z-index: 1300;
+            min-height: 88px; padding: 9px 14px 8px;
+            background: linear-gradient(135deg, #20384d, #31536d);
+            color: #fff; box-shadow: 0 3px 12px rgba(18, 38, 56, .22);
         }
+        .topbar-main { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+        .app-brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+        .app-brand-icon {
+            width: 43px; height: 43px; border-radius: 13px; flex: 0 0 43px;
+            display: flex; align-items: center; justify-content: center;
+            background: linear-gradient(135deg, #25b9ee, #087eae);
+            box-shadow: inset 0 1px 2px rgba(255,255,255,.3), 0 3px 8px rgba(0,0,0,.18);
+            font-size: 24px;
+        }
+        .app-brand-title { font-size: 20px; line-height: 1.15; font-weight: 900; letter-spacing: 1px; }
+        .app-brand-subtitle { margin-top: 4px; color: rgba(255,255,255,.78); font-size: 10px; letter-spacing: .4px; }
+        .top-settings-btn {
+            display: flex; align-items: center; justify-content: center; gap: 5px;
+            flex: 0 0 auto; min-width: 68px; padding: 9px 11px;
+            border: 1px solid rgba(255,255,255,.45); border-radius: 12px;
+            color: #fff; background: rgba(255,255,255,.13);
+            box-shadow: 0 2px 5px rgba(0,0,0,.12); font-size: 13px;
+        }
+        .top-settings-btn:active { background: rgba(255,255,255,.25); }
+        .topbar-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; min-height: 15px; }
+        #backup-status { color: rgba(255,255,255,.78); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+        .mode-indicator { flex: 0 0 auto; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.15); color: #fff; font-size: 10px; font-weight: 700; }
+        .mode-indicator.advanced { background: #d7f7e7; color: #126b45; }
 
         .controls {
-            padding: 15px; background: #fff;
+            padding: 13px 15px 15px; background: #fff;
             box-shadow: 0 4px 12px rgba(0, 0, 0, .08);
-            position: sticky; top: 0; z-index: 100;
+            position: relative; z-index: 1;
             border-radius: 0 0 20px 20px; border-bottom: 1px solid #eee;
         }
+        .search-wrap { position: relative; display: flex; align-items: center; width: 100%; }
+        .search-wrap input { width: 100%; padding: 12px 44px 12px 42px !important; border-radius: 15px !important; font-weight: 700; background: #f5f8fa; }
+        .search-leading-icon { position: absolute; left: 14px; z-index: 1; color: #718096; font-size: 17px; pointer-events: none; }
+        .search-clear-btn {
+            display: none; position: absolute; right: 8px; width: 30px; height: 30px; padding: 0;
+            border-radius: 50%; color: #667788; background: #e5ebef; box-shadow: none; font-size: 17px;
+        }
+        .status-filter-row { display: flex; gap: 7px; margin: 1px 0 10px; overflow-x: auto; padding: 2px 1px 5px; }
+        .status-filter-btn {
+            white-space: nowrap; padding: 7px 13px; border: 1px solid #d8e0e7; border-radius: 20px;
+            background: #fff; color: #617181; box-shadow: none; font-size: 12px;
+        }
+        .status-filter-btn.active { background: #e7f5fc; color: #087eae; border-color: #69bfe2; box-shadow: inset 0 0 0 1px rgba(0,159,227,.08); }
+        .controls-filter-row { align-items: center; }
+        .controls-filter-row select { min-width: 0; }
 
         .flex-row { display: flex; gap: 10px; margin-bottom: 10px; }
 
-        select, input[type="text"], input[type="number"], input[type="file"], textarea {
+        select, input[type="text"], input[type="password"], input[type="number"], input[type="file"], textarea {
             flex: 1; padding: 10px; border: 1px solid var(--border);
             border-radius: 10px; font-size: 14px; background: #f8f9fa;
             box-shadow: inset 0 2px 4px rgba(0, 0, 0, .04); transition: all .2s ease;
         }
 
-        select:focus, input[type="text"]:focus, input[type="number"]:focus, textarea:focus {
+        select:focus, input[type="text"]:focus, input[type="password"]:focus, input[type="number"]:focus, textarea:focus {
             outline: 0; border-color: var(--primary);
             box-shadow: 0 0 0 3px rgba(0, 159, 227, .2), inset 0 2px 4px rgba(0, 0, 0, .02);
             background: #fff;
@@ -169,6 +211,13 @@
             background: #fdfdfd; z-index: 1000; overflow-y: auto; padding-bottom: 300px;
             animation: fadeIn .2s ease;
         }
+        #settings-modal.modal {
+            top: var(--app-topbar-height, 88px);
+            height: calc(100vh - var(--app-topbar-height, 88px));
+            height: calc(100dvh - var(--app-topbar-height, 88px));
+            z-index: 1200; padding-bottom: 40px;
+            border-top: 1px solid rgba(0,0,0,.06);
+        }
         @keyframes fadeIn { from { opacity: 0; transform: scale(.98); } to { opacity: 1; transform: scale(1); } }
 
         .modal-header {
@@ -186,7 +235,7 @@
 
         .popup-modal {
             display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(44, 62, 80, .7); z-index: 1200; align-items: center;
+            background: rgba(44, 62, 80, .7); z-index: 1400; align-items: center;
             justify-content: center; padding: 20px; backdrop-filter: blur(3px);
         }
 
@@ -244,30 +293,60 @@
         .btn-c-res { background: linear-gradient(135deg, #16a085, #1abc9c); color: white; }
         .btn-l-bak { background: linear-gradient(135deg, #607D8B, #455A64); color: white; }
         .btn-l-res { background: linear-gradient(135deg, #a2d9ce, #73c6b6); color: #0b5345; }
+        .settings-section-title { margin: 20px 0 8px; color: #667788; font-size: 14px; font-weight: 900; text-align: center; }
+        .advanced-management-panel { margin: 18px 20px 5px; padding: 15px; border: 1px solid #b9dce9; border-radius: 16px; background: linear-gradient(135deg,#f1faff,#ffffff); }
+        .advanced-management-panel .panel-title { color: #087eae; font-weight: 900; font-size: 15px; text-align: center; margin-bottom: 8px; }
+        .advanced-management-panel button { width: 100%; margin-top: 9px; }
+        .password-message { min-height: 20px; color: #d63031; font-size: 12px; text-align: center; margin-top: 8px; }
+        .password-input { width: 100%; margin-top: 8px; padding: 13px !important; background: #f8fafb !important; font-size: 16px !important; }
     </style>
 </head>
 
 <body>
-    <header>
-        <div id="backup-status" style="opacity:.9">✅ 最新自動備份：尚未備份</div>
+    <header class="app-topbar" id="app-topbar">
+        <div class="topbar-main">
+            <div class="app-brand">
+                <div class="app-brand-icon">💳</div>
+                <div>
+                    <div class="app-brand-title">信用卡夾</div>
+                    <div class="app-brand-subtitle">卡片管理・消費紀錄・回饋整理</div>
+                </div>
+            </div>
+            <!-- 進階模式隱藏入口：請勿移除此按鈕或更換觸發位置。 -->
+            <button type="button" class="top-settings-btn" id="top-settings-btn" onclick="handleSettingsTap()" aria-label="設定">
+                <span style="font-size:17px">⚙️</span><span>設定</span>
+            </button>
+        </div>
+        <div class="topbar-meta">
+            <div id="backup-status">💾 本機資料尚未儲存</div>
+            <div id="mode-indicator" class="mode-indicator">一般模式</div>
+        </div>
     </header>
 
     <div class="controls">
-        <div class="flex-row">
-            <input type="text" id="search-input" oninput="renderCards()" placeholder="🔍 搜尋名稱、號碼末四碼、備註..." style="border-radius:15px; padding-left:15px; font-weight:bold;">
+        <div class="flex-row" style="margin-bottom:9px">
+            <div class="search-wrap">
+                <span class="search-leading-icon">🔍</span>
+                <input type="text" id="search-input" oninput="renderCards(); updateSearchClearButton();" placeholder="搜尋卡片名稱、銀行、持卡人、卡號或備註…" autocomplete="off" aria-label="搜尋信用卡">
+                <button type="button" id="search-clear-btn" class="search-clear-btn" onclick="clearCardSearch()" aria-label="清除搜尋">×</button>
+            </div>
         </div>
-        <div class="flex-row">
+        <div class="status-filter-row" aria-label="卡片狀態篩選">
+            <button type="button" class="status-filter-btn active" data-status="all" onclick="setCardStatusFilter('all')">全部卡片</button>
+            <button type="button" class="status-filter-btn" data-status="active" onclick="setCardStatusFilter('active')">🟢 使用中</button>
+            <button type="button" class="status-filter-btn" data-status="cancelled" onclick="setCardStatusFilter('cancelled')">✂️ 已剪卡</button>
+        </div>
+        <div class="flex-row controls-filter-row">
             <select id="filter-bank" onchange="renderCards()"><option value="All">全部銀行</option></select>
             <select id="filter-holder" onchange="renderCards()">
                 <option value="All">全部持卡人</option>
                 <option value="宏和">宏和</option>
                 <option value="瑋淨">瑋淨</option>
             </select>
-            <button class="btn-outline" onclick="toggleView()" id="view-toggle-btn">📋 清單</button>
+            <button class="btn-outline" onclick="toggleView()" id="view-toggle-btn" style="white-space:nowrap">📋 清單</button>
         </div>
         <div class="flex-row" style="margin-bottom:10px">
-            <button class="btn-primary" style="flex:2" onclick="openModal()">➕ 新增卡片</button>
-            <button class="btn-outline" style="flex:1;border-width:1px" onclick="openSettings()">⚙️ 設定</button>
+            <button class="btn-primary" style="flex:1" onclick="openModal()">➕ 新增卡片</button>
         </div>
         <!-- 安裝按鈕：若已安裝，CSS 會直接將此區塊 display:none -->
         <div class="flex-row" style="margin-bottom:0" id="install-btn-container">
@@ -290,13 +369,18 @@
         <div class="form-group" style="margin-top:10px">
             <label style="display:block; font-size:18px; font-weight:900; text-align:center; color:#7f8fa6; margin-bottom: 10px;">資料備份還原</label>
             
-            <div style="text-align: center; font-size: 13px; color: #95a5a6; margin-bottom: 5px;" id="cloud-last-time">
-                ☁️ 最新雲端備份：尚未備份
+            <div id="cloud-info" style="display:none">
+                <div style="text-align: center; font-size: 13px; color: #95a5a6; margin-bottom: 5px;" id="cloud-last-time">
+                    ☁️ 最新雲端備份：尚未備份
+                </div>
+                <div class="backup-grid" id="cloud-actions">
+                    <button class="btn-grid btn-c-bak" id="btn-cloud-backup" onclick="cloudBackup()">☁️ 雲端備份</button>
+                    <button class="btn-grid btn-c-res" id="btn-cloud-restore" onclick="cloudRestore()">🔄 雲端還原</button>
+                </div>
             </div>
 
-            <div class="backup-grid">
-                <button class="btn-grid btn-c-bak" id="btn-cloud-backup" onclick="cloudBackup()">☁️ 雲端備份</button>
-                <button class="btn-grid btn-c-res" id="btn-cloud-restore" onclick="cloudRestore()">🔄 雲端還原</button>
+            <div class="settings-section-title">本機備份還原（一般模式也可使用）</div>
+            <div class="backup-grid" id="local-backup-actions">
                 <button class="btn-grid btn-l-bak" onclick="exportData('json')">📥 本機備份</button>
                 <button class="btn-grid btn-l-res" onclick="document.getElementById('import-file').click()">📤 本機還原</button>
             </div>
@@ -305,8 +389,55 @@
                 <button class="btn-outline" style="box-shadow:0 3px 0 var(--primary)" onclick="exportData('txt')">📄 匯出純文字清單 (TXT)</button>
             </div>
 
+            <div id="advanced-management-panel" class="advanced-management-panel" style="display:none">
+                <div class="panel-title">🔐 進階模式管理</div>
+                <div style="font-size:12px;color:#718096;text-align:center;line-height:1.5">此裝置已通過雲端密碼驗證，雲端備份與還原功能已啟用。</div>
+                <button type="button" class="btn-outline" onclick="openChangeAdvancedPasswordModal()">🔑 修改進階模式密碼</button>
+                <button type="button" class="btn-danger" onclick="closeAdvancedMode()">離開進階模式</button>
+            </div>
+
             <!-- 隱藏的還原檔案輸入 -->
             <input type="file" id="import-file" accept=".json" onchange="importData(event)" style="display:none;">
+        </div>
+    </div>
+
+    <!-- 進階模式密碼驗證：密碼只送往共用 GAS，不寫入本機儲存。 -->
+    <div id="advanced-password-modal" class="popup-modal">
+        <div class="popup-content" style="max-width:360px">
+            <div class="modal-header" style="padding:15px 20px;border-radius:0;flex-shrink:0">
+                <h4 style="margin:0;font-size:18px">🔐 進階模式驗證</h4>
+                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('advanced-password-modal')">✖</button>
+            </div>
+            <div style="padding:20px">
+                <div style="font-size:13px;color:#718096;line-height:1.6">請輸入信用卡夾專用的雲端進階模式密碼。首次使用請輸入系統提供的初始密碼；驗證成功後可在設定中修改。</div>
+                <input type="password" id="advanced-password-input" class="password-input" maxlength="64" autocomplete="current-password" placeholder="請輸入進階模式密碼">
+                <div id="advanced-password-message" class="password-message" aria-live="polite"></div>
+                <div style="display:flex;gap:10px;margin-top:10px">
+                    <button type="button" class="btn-outline" style="flex:1" onclick="closePopupModal('advanced-password-modal')">取消</button>
+                    <button type="button" class="btn-primary" id="advanced-password-submit" style="flex:1" onclick="verifyAdvancedPassword()">驗證進入</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 修改雲端進階模式密碼 -->
+    <div id="advanced-password-change-modal" class="popup-modal">
+        <div class="popup-content" style="max-width:360px">
+            <div class="modal-header" style="padding:15px 20px;border-radius:0;flex-shrink:0">
+                <h4 style="margin:0;font-size:18px">🔑 修改進階模式密碼</h4>
+                <button class="btn-danger" style="border-radius:50%;width:32px;height:32px;padding:0;font-size:16px;box-shadow:0 2px 5px rgba(0,0,0,.2)" onclick="closePopupModal('advanced-password-change-modal')">✖</button>
+            </div>
+            <div style="padding:20px">
+                <label for="advanced-current-password" style="font-size:13px;font-weight:700;color:#34495e">目前密碼</label>
+                <input type="password" id="advanced-current-password" class="password-input" maxlength="64" autocomplete="current-password" placeholder="輸入目前密碼">
+                <label for="advanced-new-password" style="display:block;margin-top:12px;font-size:13px;font-weight:700;color:#34495e">新密碼（最多 64 個字元）</label>
+                <input type="password" id="advanced-new-password" class="password-input" maxlength="64" autocomplete="new-password" placeholder="輸入新密碼">
+                <div id="advanced-password-change-message" class="password-message" aria-live="polite"></div>
+                <div style="display:flex;gap:10px;margin-top:10px">
+                    <button type="button" class="btn-outline" style="flex:1" onclick="closePopupModal('advanced-password-change-modal')">取消</button>
+                    <button type="button" class="btn-primary" id="advanced-password-change-submit" style="flex:1" onclick="submitAdvancedPasswordChange()">確認修改</button>
+                </div>
+            </div>
         </div>
     </div>
 
@@ -668,6 +799,7 @@
         const BANKS = ["中信", "國泰", "台新", "永豐", "遠東", "華南", "聯邦", "樂天", "富邦", "玉山", "彰化", "元大", "新光", "凱基", "第一", "星展", "LINEBank", "匯豐", "台銀", "土銀", "合庫", "兆豐", "台企銀", "上海", "渣打", "王道", "將來", "高雄", "台中", "安泰", "板信", "陽信", "華泰"];
         let cards = JSON.parse(localStorage.getItem('creditCards')) || [];
         let isListView = true;
+        let currentCardStatusFilter = 'all';
         let activeInputId = null;
         let currentEditingTiers = [];
         let tempSelectedMonth = '', tempSelectedYear = '', currentYearPageStart = 0;
@@ -676,6 +808,16 @@
         const GAS_URL = 'https://script.google.com/macros/s/AKfycbw0wAnCPZkw3nlyx0Eg08Ejk49oG_itD82PqH9IP4X7S4oR5br1NTCmlUJsNfME2kbZ/exec';
         let isCloudSyncing = false;
         let cloudBackupTimer = null;
+        let cloudRequestController = null;
+
+        // 一般模式為預設；只有雲端密碼驗證成功才會寫入此裝置的模式旗標。
+        const ADVANCED_MODE_STORAGE_KEY = 'CreditCardApp_AdvancedMode_CloudVerified';
+        let isAdvancedMode = localStorage.getItem(ADVANCED_MODE_STORAGE_KEY) === 'true';
+        let settingsTapCount = 0;
+        let settingsLastTapAt = 0;
+        let settingsTapResetTimer = null;
+        let isPasswordVerifying = false;
+        let isPasswordChanging = false;
 
         window.addEventListener('beforeinstallprompt', (e) => {
             e.preventDefault(); deferredPrompt = e;
@@ -706,7 +848,179 @@
             if (container) container.style.display = 'none';
         });
 
+        function syncTopbarHeight() {
+            const topbar = document.getElementById('app-topbar');
+            if (!topbar) return;
+            document.documentElement.style.setProperty('--app-topbar-height', Math.ceil(topbar.getBoundingClientRect().height) + 'px');
+        }
+
+        function applyModeUI() {
+            isAdvancedMode = localStorage.getItem(ADVANCED_MODE_STORAGE_KEY) === 'true';
+            const cloudInfo = document.getElementById('cloud-info');
+            const cloudActions = document.getElementById('cloud-actions');
+            const panel = document.getElementById('advanced-management-panel');
+            const indicator = document.getElementById('mode-indicator');
+            if (cloudInfo) cloudInfo.style.display = isAdvancedMode ? '' : 'none';
+            if (cloudActions) cloudActions.style.display = isAdvancedMode ? '' : 'none';
+            if (panel) panel.style.display = isAdvancedMode ? '' : 'none';
+            if (indicator) {
+                indicator.textContent = isAdvancedMode ? '進階模式' : '一般模式';
+                indicator.classList.toggle('advanced', isAdvancedMode);
+            }
+        }
+
+        function updateSearchClearButton() {
+            const input = document.getElementById('search-input');
+            const button = document.getElementById('search-clear-btn');
+            if (button) button.style.display = input && input.value ? 'block' : 'none';
+        }
+
+        function clearCardSearch() {
+            const input = document.getElementById('search-input');
+            if (!input) return;
+            input.value = '';
+            renderCards();
+            updateSearchClearButton();
+            input.focus();
+        }
+
+        function setCardStatusFilter(filter) {
+            currentCardStatusFilter = ['all', 'active', 'cancelled'].includes(filter) ? filter : 'all';
+            document.querySelectorAll('.status-filter-btn').forEach(button => {
+                button.classList.toggle('active', button.dataset.status === currentCardStatusFilter);
+            });
+            renderCards();
+        }
+
+        // 方案 A：第一次點擊開啟設定並計為第 1 次；設定畫面開啟時仍可點相同頂部按鈕。
+        // 相鄰點擊間隔不得超過 2.5 秒；只有這顆按鈕會累計次數。
+        function handleSettingsTap() {
+            const now = Date.now();
+            if (!settingsLastTapAt || now - settingsLastTapAt > 2500) settingsTapCount = 0;
+            settingsLastTapAt = now;
+            settingsTapCount++;
+            clearTimeout(settingsTapResetTimer);
+            settingsTapResetTimer = setTimeout(() => {
+                settingsTapCount = 0;
+                settingsLastTapAt = 0;
+            }, 2500);
+
+            if (settingsTapCount === 1) {
+                if (document.getElementById('settings-modal').style.display !== 'block') openSettings();
+                return;
+            }
+            if (settingsTapCount >= 5) {
+                settingsTapCount = 0;
+                settingsLastTapAt = 0;
+                clearTimeout(settingsTapResetTimer);
+                openAdvancedPasswordModal();
+            }
+        }
+
+        function openAdvancedPasswordModal() {
+            const input = document.getElementById('advanced-password-input');
+            const message = document.getElementById('advanced-password-message');
+            if (input) input.value = '';
+            if (message) message.textContent = '';
+            trackModalOpen('advanced-password-modal');
+            setTimeout(() => { if (input) input.focus(); }, 100);
+        }
+
+        async function postGASAction(payload, label) {
+            const response = await fetch(GAS_URL, {
+                redirect: 'follow',
+                method: 'POST',
+                body: JSON.stringify(payload)
+            });
+            if (!response.ok) throw new Error(`HTTP 狀態碼 ${response.status}`);
+            const rawText = await response.text();
+            let result;
+            try { result = JSON.parse(rawText); }
+            catch (e) { throw new Error('GAS 回應不是 JSON 格式，請確認共用 GAS 已重新部署。'); }
+            if (!result || result.status !== 'success') throw new Error(result && result.message ? result.message : (label + '失敗'));
+            return result;
+        }
+
+        async function verifyAdvancedPassword() {
+            if (isPasswordVerifying) return;
+            const input = document.getElementById('advanced-password-input');
+            const message = document.getElementById('advanced-password-message');
+            const button = document.getElementById('advanced-password-submit');
+            const password = input ? input.value : '';
+            if (!password) { if (message) message.textContent = '請先輸入密碼。'; return; }
+            isPasswordVerifying = true;
+            if (button) { button.disabled = true; button.textContent = '驗證中…'; }
+            if (message) message.textContent = '';
+            try {
+                await postGASAction({ action: 'creditcard_password_verify', password }, '密碼驗證');
+                // 只有伺服器回傳 success 才能啟用進階模式；絕不在本機保存密碼。
+                localStorage.setItem(ADVANCED_MODE_STORAGE_KEY, 'true');
+                applyModeUI();
+                closePopupModal('advanced-password-modal');
+                showToast('已通過驗證，進階模式已開啟');
+            } catch (error) {
+                if (message) message.textContent = error.message || '驗證失敗，請稍後再試。';
+            } finally {
+                isPasswordVerifying = false;
+                if (button) { button.disabled = false; button.textContent = '驗證進入'; }
+            }
+        }
+
+        function openChangeAdvancedPasswordModal() {
+            if (!isAdvancedMode) return;
+            ['advanced-current-password', 'advanced-new-password'].forEach(id => {
+                const el = document.getElementById(id); if (el) el.value = '';
+            });
+            const message = document.getElementById('advanced-password-change-message');
+            if (message) message.textContent = '';
+            trackModalOpen('advanced-password-change-modal');
+        }
+
+        async function submitAdvancedPasswordChange() {
+            if (!isAdvancedMode || isPasswordChanging) return;
+            const current = document.getElementById('advanced-current-password').value;
+            const next = document.getElementById('advanced-new-password').value;
+            const message = document.getElementById('advanced-password-change-message');
+            const button = document.getElementById('advanced-password-change-submit');
+            if (!current || !next.trim()) { if (message) message.textContent = '目前密碼與新密碼都必須填寫。'; return; }
+            if (next.length > 64) { if (message) message.textContent = '新密碼最多 64 個字元。'; return; }
+            isPasswordChanging = true;
+            if (button) { button.disabled = true; button.textContent = '修改中…'; }
+            if (message) message.textContent = '';
+            try {
+                await postGASAction({ action: 'creditcard_password_change', currentPassword: current, newPassword: next }, '密碼修改');
+                closePopupModal('advanced-password-change-modal');
+                alert('✅ 信用卡夾的雲端進階模式密碼已修改。');
+            } catch (error) {
+                if (message) message.textContent = error.message || '修改失敗，請稍後再試。';
+            } finally {
+                isPasswordChanging = false;
+                if (button) { button.disabled = false; button.textContent = '確認修改'; }
+            }
+        }
+
+        function closeAdvancedMode() {
+            if (!isAdvancedMode) return;
+            if (!confirm('確定要離開進階模式嗎？\n\n離開後將隱藏雲端備份與還原功能，並停止後續自動雲端備份。本機卡片資料與雲端備份檔都會保留。')) return;
+            localStorage.removeItem(ADVANCED_MODE_STORAGE_KEY);
+            clearTimeout(cloudBackupTimer);
+            cloudBackupTimer = null;
+            // 若目前仍有雲端請求，嘗試取消尚未完成的瀏覽器請求。
+            if (cloudRequestController) {
+                try { cloudRequestController.abort(); } catch (e) {}
+                cloudRequestController = null;
+            }
+            isCloudSyncing = false;
+            applyModeUI();
+            showToast('已切換回一般模式');
+        }
+
+        window.addEventListener('resize', syncTopbarHeight);
+
         window.onload = () => {
+            applyModeUI();
+            syncTopbarHeight();
+            updateSearchClearButton();
             const bankOptsHTML = BANKS.map(b => `<option value="${b}">${b}</option>`).join('');
             document.getElementById('card-bank').innerHTML += bankOptsHTML;
             document.getElementById('filter-bank').innerHTML += bankOptsHTML;
@@ -830,6 +1144,9 @@
             
             let filtered = cards.filter(c => {
                 if (!((filterB === 'All' || c.bank === filterB) && (filterH === 'All' || c.holder === filterH))) return false;
+                const cardStatus = c.status || 'active';
+                if (currentCardStatusFilter === 'active' && cardStatus !== 'active') return false;
+                if (currentCardStatusFilter === 'cancelled' && cardStatus !== 'cancelled') return false;
                 if (searchTerm === '') return true;
 
                 const t = (c.name||'') + (c.bank||'') + (c.holder||'') + (c.org||'') + (c.note||'');
@@ -1114,8 +1431,14 @@
             saveAndBackup(); closeModal(); renderCards();
         }
 
-        function openSettings() { trackModalOpen('settings-modal'); }
-        function closeSettings() { trackModalClose('settings-modal'); document.getElementById('import-file').value = ''; }
+        function openSettings() {
+            if (document.getElementById('settings-modal').style.display !== 'block') trackModalOpen('settings-modal');
+        }
+        function closeSettings() {
+            trackModalClose('settings-modal');
+            document.getElementById('import-file').value = '';
+            settingsTapCount = 0; settingsLastTapAt = 0; clearTimeout(settingsTapResetTimer);
+        }
 
         // 👇 觸發存檔與雲端備份
         function saveAndBackup() {
@@ -1128,17 +1451,23 @@
             triggerCloudAutoBackup(); // 每次存檔或記帳時，觸發防抖雲端備份
         }
 
-        function updateBackupStatus(timeStr) { if (timeStr) document.getElementById('backup-status').innerText = `✅ 最新自動備份：${timeStr}`; }
+        function updateBackupStatus(timeStr) {
+            if (timeStr) document.getElementById('backup-status').innerText = `💾 本機資料已儲存：${timeStr}`;
+        }
 
-        // 👇 雲端防抖備份邏輯
+        // 一般模式不排程雲端備份；延遲計時到期時仍會再次確認模式。
         function triggerCloudAutoBackup() {
             clearTimeout(cloudBackupTimer);
+            cloudBackupTimer = null;
+            if (!isAdvancedMode) return;
             cloudBackupTimer = setTimeout(() => {
-                cloudBackup(true); 
-            }, 3000); // 靜置 3 秒後自動上傳雲端
+                cloudBackupTimer = null;
+                if (isAdvancedMode) cloudBackup(true);
+            }, 3000);
         }
 
         async function cloudBackup(isAuto = false) {
+            if (!isAdvancedMode) return;
             if (isCloudSyncing) return;
             
             if (!isAuto) {
@@ -1154,11 +1483,15 @@
                     backupData: { cards: cards } 
                 };
                 
-                // 🚀 強化版 fetch：移除自訂 headers，加入 redirect 確保跟隨 Google 轉址
+                // 手動離開進階模式時，可嘗試中止尚未完成的瀏覽器請求。
+                if (!isAdvancedMode) return;
+                const requestController = new AbortController();
+                cloudRequestController = requestController;
                 const response = await fetch(GAS_URL, {
                     redirect: "follow",
                     method: 'POST',
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    signal: requestController.signal
                 });
                 
                 if (!response.ok) throw new Error(`HTTP 狀態碼 ${response.status}`);
@@ -1173,7 +1506,7 @@
                     throw new Error("收到的不是 JSON 格式 (可能被 Google 登入畫面或系統防火牆攔截)");
                 }
                 
-                if (result.status === 'success') {
+                if (result.status === 'success' && isAdvancedMode) {
                     const timeStr = new Date().toLocaleString('zh-TW');
                     localStorage.setItem('CloudLastBackupTime', timeStr);
                     const timeDisplay = document.getElementById('cloud-last-time');
@@ -1184,9 +1517,10 @@
                     throw new Error(result.message);
                 }
             } catch (e) {
-                if (!isAuto) alert("❌ 雲端備份失敗：" + e.message);
-                console.error("雲端備份詳細錯誤:", e);
+                if (!isAuto && isAdvancedMode && e.name !== 'AbortError') alert("❌ 雲端備份失敗：" + e.message);
+                if (e.name !== 'AbortError') console.error("雲端備份詳細錯誤:", e);
             } finally {
+                cloudRequestController = null;
                 if (!isAuto) {
                     isCloudSyncing = false;
                     const btn = document.getElementById('btn-cloud-backup');
@@ -1196,6 +1530,7 @@
         }
 
         async function cloudRestore() {
+            if (!isAdvancedMode) return;
             if (isCloudSyncing) return;
             if (!confirm("⚠️ 警告：雲端還原將會完全覆蓋您目前的本機卡片資料！\n\n確定要進行還原嗎？")) return;
 
@@ -1207,10 +1542,14 @@
                 const payload = { action: "restore_from_cloud", fileName: "信用卡夾_雲端備份.json" };
                 
                 // 🚀 同樣強化 fetch 設定
+                if (!isAdvancedMode) return;
+                const requestController = new AbortController();
+                cloudRequestController = requestController;
                 const response = await fetch(GAS_URL, {
                     redirect: "follow",
                     method: 'POST',
-                    body: JSON.stringify(payload)
+                    body: JSON.stringify(payload),
+                    signal: requestController.signal
                 });
                 
                 if (!response.ok) throw new Error(`HTTP 狀態碼 ${response.status}`);
@@ -1224,7 +1563,7 @@
                     throw new Error("收到的不是 JSON 格式 (雲端檔案可能已損壞或被攔截)");
                 }
 
-                if (result.status === 'success' && result.data) {
+                if (isAdvancedMode && result.status === 'success' && result.data) {
                     // 支援兩種 JSON 格式，確保相容性
                     const cloudData = typeof result.data === 'string' ? JSON.parse(result.data) : result.data;
                     
@@ -1241,9 +1580,10 @@
                     throw new Error(result.message || "雲端找不到備份檔");
                 }
             } catch (e) {
-                alert("❌ 還原失敗：" + e.message);
-                console.error("雲端還原詳細錯誤:", e);
+                if (isAdvancedMode && e.name !== 'AbortError') alert("❌ 還原失敗：" + e.message);
+                if (e.name !== 'AbortError') console.error("雲端還原詳細錯誤:", e);
             } finally {
+                cloudRequestController = null;
                 isCloudSyncing = false;
                 if (btn) btn.innerText = '🔄 雲端還原';
             }
