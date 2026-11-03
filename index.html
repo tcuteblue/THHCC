@@ -60,7 +60,7 @@
         .top-settings-btn:active { background: rgba(255,255,255,.25); }
         .topbar-meta { display: flex; justify-content: space-between; align-items: center; gap: 8px; margin-top: 6px; min-height: 15px; }
         #backup-status { color: rgba(255,255,255,.78); font-size: 10px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-        .mode-indicator { flex: 0 0 auto; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.15); color: #fff; font-size: 10px; font-weight: 700; }
+        .mode-indicator { display: none; flex: 0 0 auto; padding: 2px 8px; border-radius: 20px; background: rgba(255,255,255,.15); color: #fff; font-size: 10px; font-weight: 700; }
         .mode-indicator.advanced { background: #d7f7e7; color: #126b45; }
 
         .controls {
@@ -319,7 +319,7 @@
         </div>
         <div class="topbar-meta">
             <div id="backup-status">💾 本機資料尚未儲存</div>
-            <div id="mode-indicator" class="mode-indicator">一般模式</div>
+            <div id="mode-indicator" class="mode-indicator" aria-live="polite"></div>
         </div>
     </header>
 
@@ -863,7 +863,9 @@
             if (cloudActions) cloudActions.style.display = isAdvancedMode ? '' : 'none';
             if (panel) panel.style.display = isAdvancedMode ? '' : 'none';
             if (indicator) {
-                indicator.textContent = isAdvancedMode ? '進階模式' : '一般模式';
+                // 只有啟用進階模式時才顯示標籤；一般模式不顯示任何模式文字。
+                indicator.style.display = isAdvancedMode ? 'inline-flex' : 'none';
+                indicator.textContent = '進階模式';
                 indicator.classList.toggle('advanced', isAdvancedMode);
             }
         }
